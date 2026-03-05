@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+        xmlns='http://www.ehcache.org/v3'
+        xsi:schemaLocation="http://www.ehcache.org/v3 http://www.ehcache.org/schema/ehcache-core-3.0.xsd">
+
+    <!-- ✅ Default cache (used if no specific entity cache is defined) -->
+    <cache alias="default">
+        <heap unit="entries">1000</heap>
+        <expiry>
+            <ttl unit="minutes">60</ttl>
+        </expiry>
+    </cache>
+
+    <!-- ✅ Entity-specific caches -->
+
+    <cache alias="com.tka.feasto.entity.User">
+        <heap unit="entries">1000</heap>
+        <expiry>
+            <ttl unit="minutes">30</ttl> <!-- Users expire faster -->
+        </expiry>
+    </cache>
+
+    <cache alias="com.tka.feasto.entity.Restaurant">
+        <heap unit="entries">2000</heap>
+        <expiry>
+            <ttl unit="minutes">120</ttl> <!-- Restaurants cached longer -->
+        </expiry>
+    </cache>
+
+    <cache alias="com.tka.feasto.entity.MenuItem">
+        <heap unit="entries">2000</heap>
+        <expiry>
+            <ttl unit="minutes">60</ttl>
+        </expiry>
+    </cache>
+
+    <!-- Cache for menu list per restaurant (used by Spring @Cacheable) -->
+    <cache alias="menuItemsByRestaurant">
+        <heap unit="entries">2000</heap>
+        <expiry>
+            <ttl unit="minutes">30</ttl>
+        </expiry>
+    </cache>
+
+    <!-- Cache for nearby restaurant search results keyed by search params -->
+    <cache alias="nearbyRestaurantsCache">
+        <heap unit="entries">2000</heap>
+        <expiry>
+            <ttl unit="minutes">10</ttl>
+        </expiry>
+    </cache>
+
+    <!-- Additional service-level caches -->
+    <cache alias="restaurantById">
+        <heap unit="entries">1000</heap>
+        <expiry>
+            <ttl unit="minutes">60</ttl>
+        </expiry>
+    </cache>
+
+    <cache alias="restaurantsAll">
+        <heap unit="entries">1000</heap>
+        <expiry>
+            <ttl unit="minutes">10</ttl>
+        </expiry>
+    </cache>
+
+    <cache alias="randomRestaurants">
+        <heap unit="entries">500</heap>
+        <expiry>
+            <ttl unit="minutes">5</ttl>
+        </expiry>
+    </cache>
+
+    <cache alias="reviewsByRestaurant">
+        <heap unit="entries">2000</heap>
+        <expiry>
+            <ttl unit="minutes">30</ttl>
+        </expiry>
+    </cache>
+
+    <cache alias="ordersByRestaurant">
+        <heap unit="entries">2000</heap>
+        <expiry>
+            <ttl unit="minutes">5</ttl>
+        </expiry>
+    </cache>
+
+    <cache alias="ordersByUser">
+        <heap unit="entries">2000</heap>
+        <expiry>
+            <ttl unit="minutes">5</ttl>
+        </expiry>
+    </cache>
+
+    <cache alias="ordersByDeliveryPartner">
+        <heap unit="entries">2000</heap>
+        <expiry>
+            <ttl unit="minutes">5</ttl>
+        </expiry>
+    </cache>
+
+    <cache alias="orderById">
+        <heap unit="entries">5000</heap>
+        <expiry>
+            <ttl unit="minutes">10</ttl>
+        </expiry>
+    </cache>
+
+    <cache alias="deliveryPartnersAvailable">
+        <heap unit="entries">1000</heap>
+        <expiry>
+            <ttl unit="minutes">1</ttl>
+        </expiry>
+    </cache>
+
+    <cache alias="deliveryPartnersAll">
+        <heap unit="entries">1000</heap>
+        <expiry>
+            <ttl unit="minutes">10</ttl>
+        </expiry>
+    </cache>
+
+    <cache alias="deliveryPartnerById">
+        <heap unit="entries">1000</heap>
+        <expiry>
+            <ttl unit="minutes">60</ttl>
+        </expiry>
+    </cache>
+
+    <cache alias="com.tka.feasto.entity.Order">
+        <heap unit="entries">3000</heap>
+        <expiry>
+            <ttl unit="minutes">15</ttl> <!-- Orders change quickly -->
+        </expiry>
+    </cache>
+
+    <cache alias="com.tka.feasto.entity.OrderItem">
+        <heap unit="entries">5000</heap>
+        <expiry>
+            <ttl unit="minutes">15</ttl>
+        </expiry>
+    </cache>
+
+    <cache alias="com.tka.feasto.entity.Payment">
+        <heap unit="entries">1000</heap>
+        <expiry>
+            <ttl unit="minutes">10</ttl> <!-- Payments should be very fresh -->
+        </expiry>
+    </cache>
+
+    <cache alias="com.tka.feasto.entity.Address">
+        <heap unit="entries">1000</heap>
+        <expiry>
+            <ttl unit="minutes">120</ttl>
+        </expiry>
+    </cache>
+
+    <cache alias="com.tka.feasto.entity.DeliveryPartner">
+        <heap unit="entries">1000</heap>
+        <expiry>
+            <ttl unit="minutes">30</ttl>
+        </expiry>
+    </cache>
+
+    <cache alias="com.tka.feasto.entity.Location">
+        <heap unit="entries">500</heap>
+        <expiry>
+            <ttl unit="minutes">60</ttl>
+        </expiry>
+    </cache>
+
+    <cache alias="com.tka.feasto.entity.LoyaltyProgram">
+        <heap unit="entries">500</heap>
+        <expiry>
+            <ttl unit="minutes">180</ttl> <!-- Loyalty program changes rarely -->
+        </expiry>
+    </cache>
+
+    <cache alias="com.tka.feasto.entity.Notification">
+        <heap unit="entries">2000</heap>
+        <expiry>
+            <ttl unit="minutes">5</ttl> <!-- Notifications are short-lived -->
+        </expiry>
+    </cache>
+
+    <cache alias="com.tka.feasto.entity.Review">
+        <heap unit="entries">2000</heap>
+        <expiry>
+            <ttl unit="minutes">60</ttl>
+        </expiry>
+    </cache>
+
+    <!-- ✅ Query cache region -->
+    <cache alias="org.hibernate.cache.spi.QueryResultsRegion">
+        <heap unit="entries">500</heap>
+        <expiry>
+            <ttl unit="minutes">10</ttl>
+        </expiry>
+    </cache>
+
+</config>

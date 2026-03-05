@@ -1,0 +1,12 @@
+.partner-hero{ background: transparent; }
+.partner-card{ box-shadow: 0 10px 30px rgba(2,6,23,0.08); }
+.partner-card.bg-white{ background: rgba(255,255,255,0.95); }
+.partner-hero .container{ padding: 1.25rem; border-radius: 12px; }
+
+/* inputs */
+.partner-card input, .partner-card select{ border: 1px solid rgba(0,0,0,0.08); padding: .5rem; }
+
+@media (max-width: 768px){
+	.partner-card{ padding: 1rem; }
+}
+

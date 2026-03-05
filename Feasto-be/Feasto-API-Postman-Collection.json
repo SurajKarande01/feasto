@@ -1,0 +1,1004 @@
+{
+	"info": {
+		"_postman_id": "c3e2afbb-3d91-4bdd-8ac5-a3cc1a11b859",
+		"name": "Feasto API Collection",
+		"description": "API collection for Feasto application, tailored for Indian data.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "4468909"
+	},
+	"item": [
+		{
+			"name": "User APIs",
+			"item": [
+				{
+					"name": "Register User",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Rohit Sharma\",\n  \"email\": \"rohit.sharma@example.com\",\n  \"phoneNumber\": \"+919876543210\",\n  \"password\": \"SecurePass123!\",\n  \"address\": {\n    \"street\": \"123 MG Road\",\n    \"city\": \"Mumbai\",\n    \"state\": \"Maharashtra\",\n    \"postalCode\": \"400001\",\n    \"country\": \"India\",\n    \"latitude\": 19.0760,\n    \"longitude\": 72.8777\n  },\n  \"role\": \"CUSTOMER\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/users/register",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login User",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"rohit.sharma@example.com\",\n  \"password\": \"12345678\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/users/login",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get User by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/users/1",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Users",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/users",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"users"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Restaurant APIs",
+			"item": [
+				{
+					"name": "Register Restaurant",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Taste of Punjab\",\n  \"description\": \"Authentic Punjabi cuisine\",\n  \"address\": {\n    \"street\": \"45 Connaught Place\",\n    \"city\": \"New Delhi\",\n    \"state\": \"Delhi\",\n    \"postalCode\": \"110001\",\n    \"country\": \"India\",\n    \"latitude\": 28.6328,\n    \"longitude\": 77.2197\n  },\n  \"phoneNumber\": \"+917020192726\",\n  \"cuisineType\": \"Punjabi\",\n  \"isActive\": true\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/restaurants/register",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"restaurants",
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Restaurant by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/restaurants/1",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"restaurants",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Restaurants",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/restaurants",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"restaurants"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Add Menu Item",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Masala Chicken Fry\",\n  \"description\": \"Spicy Masala Fry\",\n  \"price\": 350.00,\n  \"category\": \"Main Course\",\n  \"isAvailable\": true,\n  \"imageUrl\": \"https://example.com/butter-chicken.jpg\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/restaurants/1/menu",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"restaurants",
+								"1",
+								"menu"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Menu Item",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Butter Chicken\",\n  \"description\": \"Creamy tomato-based chicken curry (updated)\",\n  \"price\": 360.00,\n  \"category\": \"Main Course\",\n  \"isAvailable\": true,\n  \"imageUrl\": \"https://example.com/butter-chicken.jpg\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/restaurants/1/menu/1",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"restaurants",
+								"1",
+								"menu",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Menu Item",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/restaurants/1/menu/1",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"restaurants",
+								"1",
+								"menu",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Menu Items by Restaurant ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/restaurants/1/menu",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"restaurants",
+								"1",
+								"menu"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Orders by Restaurant ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/restaurants/1/orders",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"restaurants",
+								"1",
+								"orders"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Reviews by Restaurant ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/restaurants/1/reviews",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"restaurants",
+								"1",
+								"reviews"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Order APIs",
+			"item": [
+				{
+					"name": "Place Order",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"userId\": 1,\n  \"restaurantId\": 1,\n  \"orderStatus\": \"PLACED\",\n  \"totalAmount\": 450.00,\n  \"deliveryAddress\": {\n    \"street\": \"123 MG Road\",\n    \"city\": \"Mumbai\",\n    \"state\": \"Maharashtra\",\n    \"postalCode\": \"400001\",\n    \"country\": \"India\",\n    \"latitude\": 19.0760,\n    \"longitude\": 72.8777\n  },\n  \"orderTime\": \"2025-09-28T17:18:00\",\n  \"orderItems\": [\n    {\n      \"menuItemId\": 1,\n      \"quantity\": 2,\n      \"price\": 200.00\n    },\n    {\n      \"menuItemId\": 2,\n      \"quantity\": 1,\n      \"price\": 50.00\n    }\n  ]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/orders",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"orders"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Order by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/orders/1",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"orders",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Orders by User ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/orders/user/1",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"orders",
+								"user",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Order Status -( Prepare- Accept) or Reject",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/orders/1/status?orderStatus=PREPARING",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"orders",
+								"1",
+								"status"
+							],
+							"query": [
+								{
+									"key": "orderStatus",
+									"value": "PREPARING"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Assign Delivery Partner",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/orders/1/assign-delivery-partner?deliveryPartnerId=1",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"orders",
+								"1",
+								"assign-delivery-partner"
+							],
+							"query": [
+								{
+									"key": "deliveryPartnerId",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Place Quick Commerce Order",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"userId\": 1,\n  \"restaurantId\": 1,\n  \"orderStatus\": \"PLACED\",\n  \"totalAmount\": 200.00,\n  \"deliveryAddress\": {\n    \"street\": \"456 Brigade Road\",\n    \"city\": \"Bengaluru\",\n    \"state\": \"Karnataka\",\n    \"postalCode\": \"560001\",\n    \"country\": \"India\",\n    \"latitude\": 12.9716,\n    \"longitude\": 77.5946\n  },\n  \"orderTime\": \"2025-09-28T17:18:00\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/orders/quick-commerce",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"orders",
+								"quick-commerce"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Quick Commerce Orders by User ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/orders/quick-commerce/user/1",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"orders",
+								"quick-commerce",
+								"user",
+								"1"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Payment APIs",
+			"item": [
+				{
+					"name": "Process Payment",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"orderId\": 1,\n  \"userId\": 1,\n  \"amount\": 450.00,\n  \"paymentMethod\": \"UPI\",\n  \"paymentStatus\": \"PENDING\",\n  \"transactionId\": \"TXN123456789\",\n  \"paymentTime\": \"2025-09-28T17:18:00\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/payments",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"payments"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Payment by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/payments/1",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"payments",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Process Quick Commerce Payment",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"orderId\": 2,\n  \"userId\": 1,\n  \"amount\": 200.00,\n  \"paymentMethod\": \"CARD\",\n  \"paymentStatus\": \"PENDING\",\n  \"transactionId\": \"TXN987654321\",\n  \"paymentTime\": \"2025-09-28T17:18:00\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/payments/quick-commerce",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"payments",
+								"quick-commerce"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Delivery Partner APIs",
+			"item": [
+				{
+					"name": "Register Delivery Partner",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Amit Kumar\",\n  \"phoneNumber\": \"+919012345678\",\n  \"email\": \"amit.kumar@example.com\",\n  \"vehicleDetails\": \"Honda Activa 125\",\n  \"available\": true,\n  \"currentLocation\": {\n    \"latitude\": 12.9716,\n    \"longitude\": 77.5946\n  }\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/delivery-partners/register",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"delivery-partners",
+								"register"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Delivery Partner by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/delivery-partners/1",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"delivery-partners",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Delivery Partners",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/delivery-partners",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"delivery-partners"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Delivery Partner Availability",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"available\": true,\n  \"currentLocation\": {\n    \"latitude\": 12.9716,\n    \"longitude\": 77.5946\n  }\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/delivery-partners/1/availability",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"delivery-partners",
+								"1",
+								"availability"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Available Orders for Delivery Partner",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/delivery-partners/1/available-orders",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"delivery-partners",
+								"1",
+								"available-orders"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Accept Order",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "1"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/delivery-partners/orders/1/accept?deliveryPartnerId=1",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"delivery-partners",
+								"orders",
+								"1",
+								"accept"
+							],
+							"query": [
+								{
+									"key": "deliveryPartnerId",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Mark Order Picked Up",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/delivery-partners/orders/1/pickup",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"delivery-partners",
+								"orders",
+								"1",
+								"pickup"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Mark Order Delivered",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/delivery-partners/orders/1/deliver",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"delivery-partners",
+								"orders",
+								"1",
+								"deliver"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Delivery Partner Earnings",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/delivery-partners/1/earnings",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"delivery-partners",
+								"1",
+								"earnings"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Available Partners",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/delivery-partners/available",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"delivery-partners",
+								"available"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Loyalty APIs",
+			"item": [
+				{
+					"name": "Subscribe to Loyalty Program",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"userId\": 1,\n  \"membershipType\": \"PREMIUM\",\n  \"startDate\": \"2025-09-28T17:18:00\",\n  \"endDate\": \"2026-09-28T17:18:00\",\n  \"benefits\": \"10% discount on all orders\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/loyalty/subscribe",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"loyalty",
+								"subscribe"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Loyalty by User ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/loyalty/user/1",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"loyalty",
+								"user",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Renew Loyalty",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"userId\": 1,\n  \"membershipType\": \"PREMIUM\",\n  \"startDate\": \"2026-09-28T17:18:00\",\n  \"endDate\": \"2027-09-28T17:18:00\",\n  \"benefits\": \"10% discount on all orders\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/loyalty/1/renew",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"loyalty",
+								"1",
+								"renew"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Review APIs",
+			"item": [
+				{
+					"name": "Submit Review",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"userId\": 1,\n  \"restaurantId\": 1,\n  \"orderId\": 1,\n  \"rating\": 4,\n  \"comment\": \"Delicious food, prompt delivery!\",\n  \"reviewTime\": \"2025-09-28T17:18:00\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/reviews",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"reviews"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Reviews by Restaurant ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/reviews/restaurant/1",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"reviews",
+								"restaurant",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Review by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/reviews/1",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"reviews",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Submit Quick Commerce Review",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"userId\": 1,\n  \"restaurantId\": 1,\n  \"orderId\": 2,\n  \"rating\": 5,\n  \"comment\": \"Super fast delivery!\",\n  \"reviewTime\": \"2025-09-28T17:18:00\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/reviews/quick-commerce",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"reviews",
+								"quick-commerce"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:8080",
+			"description": "Base URL for the Feasto API"
+		}
+	]
+}

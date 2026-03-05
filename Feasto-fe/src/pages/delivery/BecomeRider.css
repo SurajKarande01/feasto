@@ -1,0 +1,12 @@
+.become-rider-hero {
+  background: transparent; /* global gradient applied in index.css */
+  color: #07124a;
+}
+.become-rider-hero .container{ background: rgba(255,255,255,0.92); border-radius: 12px; padding: 1.5rem; }
+.become-rider-card { box-shadow: 0 10px 30px rgba(2,6,23,0.08); }
+.become-rider-list li { margin-bottom: 0.5rem; }
+
+@media (max-width: 768px){
+  .become-rider-hero .grid{ grid-template-columns: 1fr!important; }
+}
+

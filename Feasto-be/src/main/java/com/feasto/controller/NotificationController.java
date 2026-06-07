@@ -17,7 +17,7 @@ import com.feasto.mapper.CustomMapper;
 import com.feasto.repository.NotificationRepository;
 
 @RestController
-@RequestMapping("/api/notifications")
+@RequestMapping("/notifications")
 public class NotificationController {
 
     @Autowired

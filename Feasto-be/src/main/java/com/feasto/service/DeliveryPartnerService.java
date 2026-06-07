@@ -15,8 +15,11 @@ import com.feasto.entity.Location;
 import com.feasto.enums.Role;
 import com.feasto.exception.ResourceNotFoundException;
 import com.feasto.exception.UnauthorizedException;
+import com.feasto.exception.ValidationException;
 import com.feasto.mapper.CustomMapper;
 import com.feasto.repository.DeliveryPartnerRepository;
+import com.feasto.repository.UserRepository;
+import com.feasto.repository.RestaurantRepository;
 
 @Service
 public class DeliveryPartnerService {
@@ -25,15 +28,31 @@ public class DeliveryPartnerService {
     private DeliveryPartnerRepository deliveryPartnerRepository;
 
     @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private RestaurantRepository restaurantRepository;
+
+    @Autowired
     private CustomMapper mapper;
+
+    @Autowired
+    private org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
 
     @Caching(evict = { @CacheEvict(value = "deliveryPartnersAll", allEntries = true),
             @CacheEvict(value = "deliveryPartnersAvailable", allEntries = true) })
     public DeliveryPartnerDTO registerDeliveryPartner(DeliveryPartnerDTO dto) {
+        String email = dto.getEmail();
+        if (userRepository.existsByEmailIgnoreCase(email) || 
+            restaurantRepository.existsByEmailIgnoreCase(email) || 
+            deliveryPartnerRepository.existsByEmailIgnoreCase(email)) {
+            throw new ValidationException("Email already registered");
+        }
         DeliveryPartner partner = mapper.toDeliveryPartner(dto);
         if (partner.getRole() == null) {
             partner.setRole(Role.DELIVERY_PARTNER);
         }
+        partner.setPassword(passwordEncoder.encode(partner.getPassword()));
         DeliveryPartner saved = deliveryPartnerRepository.save(partner);
         return mapper.toDeliveryPartnerDTO(saved);
     }
@@ -75,9 +94,7 @@ public class DeliveryPartnerService {
     public DeliveryPartnerDTO loginDeliveryPartner(String email, String password) {
         DeliveryPartner partner = deliveryPartnerRepository.findByEmailIgnoreCase(email)
                 .orElseThrow(() -> new UnauthorizedException("Invalid credentials"));
-        if (partner.getPassword() == null || !partner.getPassword().equals(password)) {
-            throw new UnauthorizedException("Invalid credentials");
-        }
+        // Password is already verified by AuthenticationManager; just return the profile.
         return mapper.toDeliveryPartnerDTO(partner);
     }
 }

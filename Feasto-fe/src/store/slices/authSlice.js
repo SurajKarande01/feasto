@@ -1,9 +1,28 @@
- 
 import { createSlice } from '@reduxjs/toolkit';
+
+// ---------------------------------------------------------------------------
+// Hydrate initial state from localStorage so a page refresh doesn't
+// reset the auth state to "not logged in" when a valid token exists.
+// ---------------------------------------------------------------------------
+const getInitialAuthState = () => {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) return { isAuthenticated: false, token: null, role: null };
+
+    let role = null;
+    if (localStorage.getItem('restaurantProfile')) role = 'RESTAURANT_OWNER';
+    else if (localStorage.getItem('deliveryProfile')) role = 'DELIVERY_PARTNER';
+    else if (localStorage.getItem('customerProfile')) role = 'CUSTOMER';
+
+    return { isAuthenticated: true, token, role };
+  } catch {
+    return { isAuthenticated: false, token: null, role: null };
+  }
+};
 
 const authSlice = createSlice({
   name: 'auth',
-  initialState: { isAuthenticated: false, token: null, role: null },
+  initialState: getInitialAuthState(),
   reducers: {
     setRole(state, action) {
       state.role = action.payload;

@@ -1,5 +1,5 @@
-import axios from "axios";
 import { useEffect, useState } from "react";
+import apiClient from "../../services/api/apiClient";
 
 import DashboardHeader from "../../components/restaurant/DashboardHeader";
 import StatCard from "../../components/restaurant/StatCard";
@@ -14,38 +14,30 @@ const RestaurantDashboard = () => {
 	useEffect(() => {
 		try {
 			const raw = localStorage.getItem("restaurantProfile");
-			if (raw) setProfile(JSON.parse(raw));
+			if (raw) {
+                const parsed = JSON.parse(raw);
+                setProfile(parsed);
+                fetchAnalytics(parsed.id || parsed.restaurantId);
+            }
 		} catch (err) {
 			console.warn("Could not read restaurant profile", err);
 		}
-		// fetch analytics after profile loaded
 	}, []);
 
-	const fetchAnalytics = async () => {
-			const raw = localStorage.getItem('restaurantProfile');
-			if (!raw) return;
-			let rid = null;
-			try {
-				const p = JSON.parse(raw);
-				rid = p.id ?? p.restaurantId ?? null;
-			} catch {
-				return;
-			}
+	const fetchAnalytics = async (rid) => {
 			if (!rid) return;
 			setLoadingAnalytics(true);
 			try {
-				const res = await axios.get(`http://localhost:8080/api/restaurants/${rid}/analytics`);
+				const res = await apiClient.get(`/restaurants/${rid}/analytics`);
 				setAnalytics(res.data || null);
-			} catch {
+			} catch (err) {
 				setAnalyticsError('Failed to load analytics');
 			} finally {
 				setLoadingAnalytics(false);
 			}
 		};
 
-	useEffect(() => {
-		fetchAnalytics();
-	}, []);
+
 
     
 

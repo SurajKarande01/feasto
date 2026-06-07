@@ -53,33 +53,27 @@ public class ReviewService {
                                         .orElseThrow(() -> new ResourceNotFoundException(
                                                         "Order not found with id: " + dto.getOrderId()));
                 }
+                // deliveryPartner lookup is done below with a single safe orElseThrow
+                Review review = mapper.toReview(dto);
+                // Set delivery partner if present — reuse a single safe lookup
+                DeliveryPartner deliveryPartner = null;
                 if (dto.getDeliveryPartnerId() != null) {
-                        deliveryPartnerRepository.findById(dto.getDeliveryPartnerId())
+                        deliveryPartner = deliveryPartnerRepository.findById(dto.getDeliveryPartnerId())
                                         .orElseThrow(() -> new ResourceNotFoundException(
                                                         "Delivery Partner not found with id: "
                                                                         + dto.getDeliveryPartnerId()));
-                }
-                Review review = mapper.toReview(dto);
-                // Set delivery partner if present
-                if (dto.getDeliveryPartnerId() != null) {
-                        review.setDeliveryPartner(deliveryPartnerRepository.findById(dto.getDeliveryPartnerId()).get());
+                        review.setDeliveryPartner(deliveryPartner);
                 }
                 Review saved = reviewRepository.save(review);
 
                 // Update average rating for delivery partner if applicable
-                if (dto.getDeliveryPartnerId() != null) {
+                if (deliveryPartner != null) {
                         List<Review> partnerReviews = reviewRepository
                                         .findByDeliveryPartner_DeliveryPartnerId(dto.getDeliveryPartnerId());
                         double avg = partnerReviews.stream().mapToInt(r -> r.getRating() != null ? r.getRating() : 0)
                                         .average().orElse(0.0);
-                        DeliveryPartner partner = deliveryPartnerRepository.findById(dto.getDeliveryPartnerId()).get();
-                        partner.setAverageRating(avg);
-                        deliveryPartnerRepository.save(partner);
-                }
-                // Evict cached reviews for restaurant (if any) so next read is fresh
-                if (dto.getRestaurantId() != null) {
-                        // Use cache name 'reviewsByRestaurant' configured in ehcache.xml
-                        // Eviction done via annotation below using @CacheEvict on this method
+                        deliveryPartner.setAverageRating(avg);
+                        deliveryPartnerRepository.save(deliveryPartner);
                 }
                 return mapper.toReviewDTO(saved);
         }

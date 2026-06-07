@@ -1,7 +1,7 @@
-import axios from 'axios';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './BecomeRider.css';
+import { loginDeliveryPartner, registerDeliveryPartner } from '../../services/api/authService';
 
 const BecomeRider = () => {
   const navigate = useNavigate();
@@ -49,11 +49,7 @@ const BecomeRider = () => {
         password: form.password,
       };
 
-      await axios.post(
-        'http://localhost:8080/api/delivery-partners/register',
-        payload,
-        { headers: { 'Content-Type': 'application/json' } }
-      );
+      await registerDeliveryPartner(payload);
 
       alert('Registration successful — you can now login');
       setForm({
@@ -69,7 +65,7 @@ const BecomeRider = () => {
       setIsRegister(false);
     } catch (err) {
       console.error('Rider registration error', err);
-      const msg = err?.response?.data?.message || err.message || 'Registration failed';
+      const msg = err.response?.data?.error || err.message || 'Registration failed';
       setApiError(msg);
     } finally {
       setApiLoading(false);
@@ -102,19 +98,11 @@ const BecomeRider = () => {
     setApiError('');
     setApiLoading(true);
     try {
-      // TODO: confirm login endpoint path with backend
-      const res = await axios.post(
-        'http://localhost:8080/api/delivery-partners/login',
-        { email: loginForm.email, password: loginForm.password },
-        { headers: { 'Content-Type': 'application/json' } }
-      );
-      if (res.data) {
-        localStorage.setItem('deliveryProfile', JSON.stringify(res.data));
-      }
+      await loginDeliveryPartner({ email: loginForm.email, password: loginForm.password });
       navigate('/delivery-dashboard');
     } catch (err) {
       console.error('Login error', err);
-      const msg = err?.request?.responseText || err.message || 'Login failed';
+      const msg = err.response?.data?.error || err.message || 'Login failed';
       setApiError(msg);
     } finally {
       setApiLoading(false);

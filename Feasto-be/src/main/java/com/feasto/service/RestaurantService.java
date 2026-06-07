@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
@@ -33,10 +35,14 @@ import com.feasto.repository.MenuItemRepository;
 import com.feasto.repository.OrderRepository;
 import com.feasto.repository.RestaurantRepository;
 import com.feasto.repository.ReviewRepository;
+import com.feasto.repository.UserRepository;
+import com.feasto.repository.DeliveryPartnerRepository;
 import com.feasto.util.ValidationUtil;
 
 @Service
 public class RestaurantService {
+
+	private static final Logger logger = LoggerFactory.getLogger(RestaurantService.class);
 
 	@Autowired
 	private CloudinaryService cloudinaryService;
@@ -46,6 +52,12 @@ public class RestaurantService {
 
 	@Autowired
 	private RestaurantRepository restaurantRepository;
+
+	@Autowired
+	private UserRepository userRepository;
+
+	@Autowired
+	private DeliveryPartnerRepository deliveryPartnerRepository;
 
 	@Autowired
 	private MenuItemRepository menuItemRepository;
@@ -62,18 +74,32 @@ public class RestaurantService {
 	// EntityManager no longer required here; DB logic moved to repository
 	// implementation
 
+    @Autowired
+    private org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
+
+	private void validateEmailUniqueness(String email) {
+		if (userRepository.existsByEmailIgnoreCase(email) || 
+			restaurantRepository.existsByEmailIgnoreCase(email) || 
+			deliveryPartnerRepository.existsByEmailIgnoreCase(email)) {
+			throw new ValidationException("Email already registered");
+		}
+	}
+
 	@CacheEvict(value = "nearbyRestaurantsCache", allEntries = true)
 	public RestaurantDTO registerRestaurant(RestaurantDTO restaurantDTO) {
+		validateEmailUniqueness(restaurantDTO.getEmail());
 		Restaurant restaurant = mapper.toRestaurant(restaurantDTO);
 		if (restaurant.getRole() == null) {
 			restaurant.setRole(Role.RESTAURANT_OWNER);
 		}
+        restaurant.setPassword(passwordEncoder.encode(restaurant.getPassword()));
 		Restaurant savedRestaurant = restaurantRepository.save(restaurant);
 		return mapper.toRestaurantDTO(savedRestaurant);
 	}
 
 	@CacheEvict(value = "nearbyRestaurantsCache", allEntries = true)
 	public RestaurantDTO registerRestaurant(RestaurantDTO restaurantDTO, MultipartFile image) {
+		validateEmailUniqueness(restaurantDTO.getEmail());
 		if (image != null && !image.isEmpty()) {
 			ValidationUtil.validateImage(image, maxFileSizeMB);
 			String orig = restaurantDTO.getName() == null ? "img"
@@ -81,10 +107,15 @@ public class RestaurantService {
 			String rand = String.valueOf((int) (Math.random() * 9000) + 1000);
 			String name = "restaurant-" + rand + "-" + orig;
 
-			ImageUploadResult res = cloudinaryService.uploadImage(image, name);
-			if (res != null) {
-				restaurantDTO.setImageUrl(res.getImageUrl());
-				restaurantDTO.setCloudinaryPublicId(res.getPublicId());
+			try {
+				ImageUploadResult res = cloudinaryService.uploadImage(image, name);
+				if (res != null) {
+					restaurantDTO.setImageUrl(res.getImageUrl());
+					restaurantDTO.setCloudinaryPublicId(res.getPublicId());
+				}
+			} catch (Exception ex) {
+				logger.error("Failed to upload restaurant image to Cloudinary", ex);
+				throw new ValidationException("Failed to upload image to Cloudinary: " + ex.getMessage());
 			}
 		}
 
@@ -93,6 +124,7 @@ public class RestaurantService {
 		if (restaurant.getRole() == null) {
 			restaurant.setRole(Role.RESTAURANT_OWNER);
 		}
+        restaurant.setPassword(passwordEncoder.encode(restaurant.getPassword()));
 		Restaurant savedRestaurant = restaurantRepository.save(restaurant);
 		return mapper.toRestaurantDTO(savedRestaurant);
 	}
@@ -109,14 +141,11 @@ public class RestaurantService {
 		return restaurantRepository.findAll().stream().map(mapper::toRestaurantDTO).collect(Collectors.toList());
 	}
 
-    // Login for restaurant using email and password (plaintext for now)
+    // Login for restaurant using email and password
     public RestaurantDTO loginRestaurant(String email, String password) {
-      
         Restaurant restaurant = restaurantRepository.findByEmail(email)
                 .orElseThrow(() -> new UnauthorizedException("Invalid credentials"));
-        if (restaurant.getPassword() == null || !restaurant.getPassword().equals(password)) {
-            throw new UnauthorizedException("Invalid credentials");
-        }
+        // Password is already verified by AuthenticationManager; just return the profile.
         return mapper.toRestaurantDTO(restaurant);
     }
 
@@ -137,7 +166,7 @@ public class RestaurantService {
 			String rand = String.valueOf((int) (Math.random() * 9000) + 1000);
 			String name = "r" + restaurantId + "-" + rand + "-" + orig;
 			
-			System.out.println("Uploading image with name: " + name);
+			logger.debug("Uploading menu item image with name: {}", name);
 			ImageUploadResult res = cloudinaryService.uploadImage(image, name);
 			if (res != null) {
 				menuItemDTO.setImageUrl(res.getImageUrl());

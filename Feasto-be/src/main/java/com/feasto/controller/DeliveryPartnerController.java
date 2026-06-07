@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -41,14 +42,28 @@ public class DeliveryPartnerController {
 	@Autowired
 	private CustomMapper mapper;
 
+    @Autowired
+    private org.springframework.security.authentication.AuthenticationManager authenticationManager;
+
+    @Autowired
+    private com.feasto.util.JwtUtils jwtUtils;
+
 	@PostMapping("/register")
 	public ResponseEntity<DeliveryPartnerDTO> registerDeliveryPartner(@Valid @RequestBody DeliveryPartnerDTO dto) {
 		return ResponseEntity.ok(deliveryPartnerService.registerDeliveryPartner(dto));
 	}
 
 	@PostMapping("/login")
-	public ResponseEntity<DeliveryPartnerDTO> loginDeliveryPartner(@RequestBody LoginDTO dto) {
-		return ResponseEntity.ok(deliveryPartnerService.loginDeliveryPartner(dto.getEmail(), dto.getPassword()));
+	public ResponseEntity<com.feasto.dto.AuthResponseDTO> loginDeliveryPartner(@RequestBody LoginDTO dto) {
+        org.springframework.security.core.Authentication authentication = authenticationManager.authenticate(
+                new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(dto.getEmail(), dto.getPassword()));
+
+        org.springframework.security.core.context.SecurityContextHolder.getContext().setAuthentication(authentication);
+        String jwt = jwtUtils.generateToken(dto.getEmail());
+        
+        DeliveryPartnerDTO profile = deliveryPartnerService.loginDeliveryPartner(dto.getEmail(), dto.getPassword());
+        
+        return ResponseEntity.ok(new com.feasto.dto.AuthResponseDTO(jwt, profile));
 	}
 
 	@GetMapping("/{id}")
@@ -61,6 +76,7 @@ public class DeliveryPartnerController {
 		return ResponseEntity.ok(deliveryPartnerService.getAllDeliveryPartners());
 	}
 
+	@PreAuthorize("hasRole('DELIVERY_PARTNER')")
 	@PutMapping("/{id}/availability")
 	public ResponseEntity<DeliveryPartnerDTO> updateAvailability(@PathVariable Long id,
 			@RequestBody DeliveryPartnerAvailabilityDTO dto) {
@@ -86,7 +102,7 @@ public class DeliveryPartnerController {
 		return ResponseEntity.ok("Earnings calculation not implemented");
 	}
 
-	// Publish delivery partner location updates to subscribers (WebSocket topics)
+	@PreAuthorize("hasRole('DELIVERY_PARTNER')")
 	@PostMapping("/location")
 	public ResponseEntity<Void> publishLocation(@RequestBody LocationUpdateDTO dto) {
 		// broadcast to topic

@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -36,7 +37,6 @@ import com.feasto.service.ReviewService;
 
 @RestController
 @RequestMapping("/restaurants")
-@CrossOrigin(origins = "http://localhost:8080/")
 public class RestaurantController {
 
     @Autowired
@@ -49,25 +49,47 @@ public class RestaurantController {
     @Autowired
     private ReviewService reviewService;
 
+    @Autowired
+    private jakarta.validation.Validator validator;
+
+    @Autowired
+    private org.springframework.security.authentication.AuthenticationManager authenticationManager;
+
+    @Autowired
+    private com.feasto.util.JwtUtils jwtUtils;
+
     // small executor for background SSE tasks
-    private final ExecutorService sseExecutor = Executors.newCachedThreadPool();
+    private final java.util.concurrent.ExecutorService sseExecutor = java.util.concurrent.Executors.newCachedThreadPool();
 
     // Register a new restaurant (multipart: restaurant JSON + optional image)
-    @PostMapping(path = "/register", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(path = "/register", consumes = org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<RestaurantDTO> registerRestaurant(
-            @RequestPart("restaurant") String restaurantJson, // Changed to @RequestPart
-            @RequestPart(value = "image", required = false) MultipartFile image // Changed to @RequestPart
+            @RequestPart("restaurant") String restaurantJson,
+            @RequestPart(value = "image", required = false) MultipartFile image
     ) throws Exception {
         
-        ObjectMapper mapper = new ObjectMapper();
+        com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
         RestaurantDTO dto = mapper.readValue(restaurantJson, RestaurantDTO.class);
+        
+        java.util.Set<jakarta.validation.ConstraintViolation<RestaurantDTO>> violations = validator.validate(dto);
+        if (!violations.isEmpty()) {
+            throw new com.feasto.exception.ValidationException(violations.iterator().next().getMessage());
+        }
         
         return ResponseEntity.ok(restaurantService.registerRestaurant(dto, image));
     }
 
     @PostMapping("/login")
-    public ResponseEntity<RestaurantDTO> loginRestaurant(@RequestBody LoginDTO dto) {
-        return ResponseEntity.ok(restaurantService.loginRestaurant(dto.getEmail(), dto.getPassword()));
+    public ResponseEntity<com.feasto.dto.AuthResponseDTO> loginRestaurant(@RequestBody LoginDTO dto) {
+        org.springframework.security.core.Authentication authentication = authenticationManager.authenticate(
+                new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(dto.getEmail(), dto.getPassword()));
+
+        org.springframework.security.core.context.SecurityContextHolder.getContext().setAuthentication(authentication);
+        String jwt = jwtUtils.generateToken(dto.getEmail());
+        
+        RestaurantDTO profile = restaurantService.loginRestaurant(dto.getEmail(), dto.getPassword());
+        
+        return ResponseEntity.ok(new com.feasto.dto.AuthResponseDTO(jwt, profile));
     }
 
     // Get restaurant by ID
@@ -152,7 +174,7 @@ public class RestaurantController {
         return emitter;
     }
 
-    // add a menu item to a restaurant (multi-part: image file + menuItem JSON)
+    @PreAuthorize("hasRole('RESTAURANT_OWNER')")
     @PostMapping(path = "/{restaurantId}/menu", consumes = { "multipart/form-data" })
     public ResponseEntity<MenuItemDTO> addMenuItem(@PathVariable Long restaurantId,
             @RequestParam("menuItem") String menuItemJson,
@@ -164,8 +186,7 @@ public class RestaurantController {
         return ResponseEntity.ok(restaurantService.addMenuItem(restaurantId, dto, image));
     }
 
-    // update a menu item of a restaurant (single endpoint handles textual updates
-    // and optional image replacement)
+    @PreAuthorize("hasRole('RESTAURANT_OWNER')")
     @PutMapping(path = "/{restaurantId}/menu/{menuItemId}", consumes = { "multipart/form-data" })
     public ResponseEntity<MenuItemDTO> updateMenuItem(@PathVariable Long restaurantId,
             @PathVariable Long menuItemId,
@@ -176,7 +197,7 @@ public class RestaurantController {
         return ResponseEntity.ok(restaurantService.updateMenuItem(restaurantId, menuItemId, dto, image));
     }
 
-    // delete a menu item of a restaurant
+    @PreAuthorize("hasRole('RESTAURANT_OWNER')")
     @DeleteMapping("/{restaurantId}/menu/{menuItemId}")
     public ResponseEntity<Void> deleteMenuItem(@PathVariable Long restaurantId, @PathVariable Long menuItemId) {
         restaurantService.deleteMenuItem(restaurantId, menuItemId);
@@ -191,7 +212,7 @@ public class RestaurantController {
         return ResponseEntity.ok(restaurantService.getMenuItemsByRestaurantId(restaurantId));
     }
 
-    // get orders of a restaurant
+    @PreAuthorize("hasRole('RESTAURANT_OWNER') or hasRole('ADMIN')")
     @GetMapping("/{restaurantId}/orders")
     public ResponseEntity<Page<OrderDTO>> getOrdersByRestaurantId(
             @PathVariable Long restaurantId,
@@ -207,7 +228,7 @@ public class RestaurantController {
         return ResponseEntity.ok(reviewService.getReviewsByRestaurantId(restaurantId));
     }
 
-    // Analytics: consolidated metrics for a restaurant
+    @PreAuthorize("hasRole('RESTAURANT_OWNER')")
     @GetMapping("/{restaurantId}/analytics")
     public ResponseEntity<?> getRestaurantAnalytics(@PathVariable Long restaurantId) {
         return ResponseEntity.ok(restaurantService.getRestaurantAnalytics(restaurantId));

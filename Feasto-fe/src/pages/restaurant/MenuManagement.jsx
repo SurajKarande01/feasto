@@ -1,4 +1,4 @@
-import axios from "axios";
+import apiClient from "../../services/api/apiClient";
 import { useEffect, useState } from "react";
 // Cloudinary JS SDK
 import { Cloudinary } from "@cloudinary/url-gen";
@@ -209,8 +209,8 @@ const MenuManagement = () => {
       }
       setLoading(true);
       try {
-        const res = await axios.get(
-          `http://localhost:8080/api/restaurants/${rid}/menu`
+        const res = await apiClient.get(
+          `/restaurants/${rid}/menu`
         );
         // Robust check: handle if API returns array directly or wrapped in { data: ... }
         const raw = res.data;
@@ -243,8 +243,8 @@ const MenuManagement = () => {
     }
     setLoading(true);
     try {
-      const res = await axios.get(
-        `http://localhost:8080/api/restaurants/${rid}/menu`
+      const res = await apiClient.get(
+        `/restaurants/${rid}/menu`
       );
       // Robust check here as well
       const raw = res.data;
@@ -269,8 +269,8 @@ const MenuManagement = () => {
     if (!rid) return;
     if (!confirm(`Delete ${item.name}?`)) return;
     try {
-      await axios.delete(
-        `http://localhost:8080/api/restaurants/${rid}/menu/${item.menuItemId}`
+      await apiClient.delete(
+        `/restaurants/${rid}/menu/${item.menuItemId}`
       );
       setMenu((m) => m.filter((x) => x.menuItemId !== item.menuItemId));
     } catch {
@@ -335,9 +335,9 @@ const MenuManagement = () => {
         fd.append("image", files[0]);
       }
 
-      const url = `http://localhost:8080/api/restaurants/${rid}/menu/${editingItem.menuItemId}`;
-      // let axios set Content-Type with proper boundary
-      await axios.put(url, fd);
+      const url = `/restaurants/${rid}/menu/${editingItem.menuItemId}`;
+      // let apiClient set Content-Type with proper boundary
+      await apiClient.put(url, fd, { headers: { "Content-Type": "multipart/form-data" } });
       // refresh list
       await refresh();
       closeModal();

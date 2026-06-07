@@ -13,21 +13,21 @@
 
     <!-- ✅ Entity-specific caches -->
 
-    <cache alias="com.tka.feasto.entity.User">
+    <cache alias="com.feasto.entity.User">
         <heap unit="entries">1000</heap>
         <expiry>
             <ttl unit="minutes">30</ttl> <!-- Users expire faster -->
         </expiry>
     </cache>
 
-    <cache alias="com.tka.feasto.entity.Restaurant">
+    <cache alias="com.feasto.entity.Restaurant">
         <heap unit="entries">2000</heap>
         <expiry>
             <ttl unit="minutes">120</ttl> <!-- Restaurants cached longer -->
         </expiry>
     </cache>
 
-    <cache alias="com.tka.feasto.entity.MenuItem">
+    <cache alias="com.feasto.entity.MenuItem">
         <heap unit="entries">2000</heap>
         <expiry>
             <ttl unit="minutes">60</ttl>
@@ -128,63 +128,63 @@
         </expiry>
     </cache>
 
-    <cache alias="com.tka.feasto.entity.Order">
+    <cache alias="com.feasto.entity.Order">
         <heap unit="entries">3000</heap>
         <expiry>
             <ttl unit="minutes">15</ttl> <!-- Orders change quickly -->
         </expiry>
     </cache>
 
-    <cache alias="com.tka.feasto.entity.OrderItem">
+    <cache alias="com.feasto.entity.OrderItem">
         <heap unit="entries">5000</heap>
         <expiry>
             <ttl unit="minutes">15</ttl>
         </expiry>
     </cache>
 
-    <cache alias="com.tka.feasto.entity.Payment">
+    <cache alias="com.feasto.entity.Payment">
         <heap unit="entries">1000</heap>
         <expiry>
             <ttl unit="minutes">10</ttl> <!-- Payments should be very fresh -->
         </expiry>
     </cache>
 
-    <cache alias="com.tka.feasto.entity.Address">
+    <cache alias="com.feasto.entity.Address">
         <heap unit="entries">1000</heap>
         <expiry>
             <ttl unit="minutes">120</ttl>
         </expiry>
     </cache>
 
-    <cache alias="com.tka.feasto.entity.DeliveryPartner">
+    <cache alias="com.feasto.entity.DeliveryPartner">
         <heap unit="entries">1000</heap>
         <expiry>
             <ttl unit="minutes">30</ttl>
         </expiry>
     </cache>
 
-    <cache alias="com.tka.feasto.entity.Location">
+    <cache alias="com.feasto.entity.Location">
         <heap unit="entries">500</heap>
         <expiry>
             <ttl unit="minutes">60</ttl>
         </expiry>
     </cache>
 
-    <cache alias="com.tka.feasto.entity.LoyaltyProgram">
+    <cache alias="com.feasto.entity.LoyaltyProgram">
         <heap unit="entries">500</heap>
         <expiry>
             <ttl unit="minutes">180</ttl> <!-- Loyalty program changes rarely -->
         </expiry>
     </cache>
 
-    <cache alias="com.tka.feasto.entity.Notification">
+    <cache alias="com.feasto.entity.Notification">
         <heap unit="entries">2000</heap>
         <expiry>
             <ttl unit="minutes">5</ttl> <!-- Notifications are short-lived -->
         </expiry>
     </cache>
 
-    <cache alias="com.tka.feasto.entity.Review">
+    <cache alias="com.feasto.entity.Review">
         <heap unit="entries">2000</heap>
         <expiry>
             <ttl unit="minutes">60</ttl>

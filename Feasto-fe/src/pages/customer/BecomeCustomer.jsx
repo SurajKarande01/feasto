@@ -1,6 +1,6 @@
-import axios from "axios";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { loginUser, registerUser } from "../../services/api/authService";
 
 function BecomeCustomer() {
   const navigate = useNavigate();
@@ -98,20 +98,10 @@ function BecomeCustomer() {
     setApiError("");
     setApiLoading(true);
     try {
-      const res = await axios.post(
-        "http://localhost:8080/api/users/login",
-        { email: loginForm.email, password: loginForm.password },
-        { headers: { "Content-Type": "application/json" } }
-      );
-      const data = res.data;
-      try {
-        if (data) localStorage.setItem("customerProfile", JSON.stringify(data));
-      } catch (err) {
-        console.warn("Failed to persist customer profile", err);
-      }
+      await loginUser({ email: loginForm.email, password: loginForm.password });
       navigate("/customer-dashboard");
     } catch (err) {
-      const msg = err?.request?.responseText || err.message || "Login failed";
+      const msg = err.response?.data?.error || err.message || "Login failed";
       setApiError(msg);
     } finally {
       setApiLoading(false);
@@ -137,15 +127,11 @@ function BecomeCustomer() {
       password: registerForm.password,
     };
     try {
-      await axios.post(
-        "http://localhost:8080/api/users/register",
-        payload,
-        { headers: { "Content-Type": "application/json" } }
-      );
+      await registerUser(payload);
       alert("Registration successful — you can now login");
       setIsRegister(false);
     } catch (err) {
-      const msg = err?.response?.data?.message || err.message || "Registration failed";
+      const msg = err.response?.data?.error || err.message || "Registration failed";
       setApiError(msg);
     } finally {
       setApiLoading(false);

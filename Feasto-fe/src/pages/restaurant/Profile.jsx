@@ -1,14 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import apiClient from '../../services/api/apiClient';
 import { useParams } from 'react-router-dom';
 import { 
   Utensils, MapPin, Star, Plus, Settings, ShoppingBag, 
   Trash2, Edit3, ChefHat, Clock, Search, X, Check, 
   Image as ImageIcon, Loader2, AlertCircle
 } from 'lucide-react';
-
-// Configuration matches your Spring Boot Port
-const API_BASE_URL = "http://localhost:8080/restaurants";
 
 // --- Sub-Component: Loading Skeleton ---
 const SkeletonLoader = () => (
@@ -210,8 +207,8 @@ const RestaurantProfile = () => {
       try {
         setLoading(true);
         const [resDetails, resMenu] = await Promise.all([
-          axios.get(`${API_BASE_URL}/${restaurantId}`),
-          axios.get(`${API_BASE_URL}/${restaurantId}/menu`)
+          apiClient.get(`/restaurants/${restaurantId}`),
+          apiClient.get(`/restaurants/${restaurantId}/menu`)
         ]);
         setRestaurant(resDetails.data);
         setMenuItems(resMenu.data);
@@ -229,7 +226,7 @@ const RestaurantProfile = () => {
   const handleDeleteItem = async (menuItemId) => {
     if (window.confirm("Permanently delete this menu item?")) {
       try {
-        await axios.delete(`${API_BASE_URL}/${restaurantId}/menu/${menuItemId}`);
+        await apiClient.delete(`/restaurants/${restaurantId}/menu/${menuItemId}`);
         setMenuItems(prev => prev.filter(item => item.menuItemId !== menuItemId));
       } catch (err) {
         alert("Failed to delete item. Check console.");
@@ -261,8 +258,8 @@ const RestaurantProfile = () => {
             formData.append("image", dishData.imageFile);
         }
 
-        const response = await axios.post(
-            `${API_BASE_URL}/${restaurantId}/menu`, 
+        const response = await apiClient.post(
+            `/restaurants/${restaurantId}/menu`, 
             formData, 
             { headers: { 'Content-Type': 'multipart/form-data' } }
         );

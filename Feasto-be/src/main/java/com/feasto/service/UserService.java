@@ -7,12 +7,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.feasto.dto.UserDTO;
+import com.feasto.dto.UserRegistrationDTO;
 import com.feasto.entity.User;
 import com.feasto.exception.ResourceNotFoundException;
 import com.feasto.exception.UnauthorizedException;
 import com.feasto.exception.ValidationException;
 import com.feasto.mapper.CustomMapper;
 import com.feasto.repository.UserRepository;
+import com.feasto.repository.RestaurantRepository;
+import com.feasto.repository.DeliveryPartnerRepository;
 
 @Service
 public class UserService {
@@ -23,18 +26,30 @@ public class UserService {
     private UserRepository userRepository;
 
     @Autowired
+    private RestaurantRepository restaurantRepository;
+
+    @Autowired
+    private DeliveryPartnerRepository deliveryPartnerRepository;
+
+    @Autowired
     private CustomMapper mapper;
 
-    public UserDTO registerUser(UserDTO userDTO) {
-        if (userRepository.findByEmail(userDTO.getEmail()).isPresent()) {
-            throw new ValidationException("Email already exists");
+    @Autowired
+    private org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
+
+    public UserDTO registerUser(UserRegistrationDTO registrationDTO) {
+        String email = registrationDTO.getEmail();
+        if (userRepository.existsByEmailIgnoreCase(email) || 
+            restaurantRepository.existsByEmailIgnoreCase(email) || 
+            deliveryPartnerRepository.existsByEmailIgnoreCase(email)) {
+            throw new ValidationException("Email already registered");
         }
-        User user = mapper.toUser(userDTO);
+        User user = mapper.toUserFromRegistration(registrationDTO);
         // ensure default role
         if (user.getRole() == null) {
             user.setRole(com.feasto.enums.Role.CUSTOMER);
         }
-        user.setPassword(user.getPassword());
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
         User savedUser = userRepository.save(user);
 
         // Notify user on registration
@@ -50,11 +65,7 @@ public class UserService {
     public UserDTO loginUser(String email, String password) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UnauthorizedException("Invalid credentials"));
-        System.out.println(user.getPassword());
-        System.out.println(password);
-        if (!user.getPassword().equals(password)) {
-            throw new UnauthorizedException("Invalid credentials");
-        }
+        // Password is already verified by AuthenticationManager; just return the profile.
         return mapper.toUserDTO(user);
     }
 

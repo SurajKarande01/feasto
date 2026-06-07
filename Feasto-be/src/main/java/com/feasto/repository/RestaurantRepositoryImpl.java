@@ -16,6 +16,7 @@ import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;
 
 @Repository
+// Triggering recompilation
 public class RestaurantRepositoryImpl implements RestaurantRepositoryCustom {
 
     @PersistenceContext

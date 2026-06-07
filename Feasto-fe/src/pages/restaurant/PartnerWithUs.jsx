@@ -1,7 +1,7 @@
-import axios from "axios";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./PartnerWithUs.css";
+import { loginRestaurant, registerRestaurant } from "../../services/api/authService";
 
 const cuisineOptions = [
   "Punjabi",
@@ -138,18 +138,11 @@ export default function PartnerWithUs() {
     setApiError("");
     setApiLoading(true);
     try {
-      const res = await axios.post(
-        "http://localhost:8080/api/restaurants/login",
-        { email: loginForm.email, password: loginForm.password },
-        { headers: { "Content-Type": "application/json" } }
-      );
-      if (res.data) {
-        localStorage.setItem("restaurantProfile", JSON.stringify(res.data));
-      }
+      await loginRestaurant({ email: loginForm.email, password: loginForm.password });
       navigate("/restaurant-dashboard");
     } catch (err) {
       console.error("Login error", err);
-      const msg = err?.request?.responseText || err.message || "Login failed";
+      const msg = err.response?.data?.error || err.message || "Login failed";
       setApiError(msg);
     } finally {
       setApiLoading(false);
@@ -184,24 +177,19 @@ export default function PartnerWithUs() {
     const formData = new FormData();
     formData.append(
       "restaurant",
-      new Blob([JSON.stringify(payload)], { type: "application/json" })
+      JSON.stringify(payload)
     );
     if (imageFile) {
       formData.append("image", imageFile);
     }
 
     try {
-      await axios.post(
-        "http://localhost:8080/api/restaurants/register",
-        formData,
-        { headers: { "Content-Type": "multipart/form-data" } }
-      );
+      await registerRestaurant(formData);
       alert("Registration successful — you can now login");
       setIsRegister(false);
     } catch (err) {
       console.error("Registration error", err);
-      const msg =
-        err?.response?.data?.message || err.message || "Registration failed";
+      const msg = err.response?.data?.error || err.message || "Registration failed";
       setApiError(msg);
     } finally {
       setApiLoading(false);

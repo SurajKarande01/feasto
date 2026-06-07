@@ -1,4 +1,4 @@
-import axios from "axios";
+import apiClient from "../../services/api/apiClient";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import DeliveryMap from "../../components/delivery/DeliveryMap";
@@ -88,10 +88,9 @@ const DeliveryDashboard = () => {
         },
       };
       const id = resolvePartnerId();
-      await axios.put(
-        `http://localhost:8080/api/delivery-partners/${id}/availability`,
-        payload,
-        { headers: { "Content-Type": "application/json" } }
+      await apiClient.put(
+        `/delivery-partners/${id}/availability`,
+        payload
       );
       setOnline(newAvailable);
     } catch (err) {
@@ -112,8 +111,8 @@ const DeliveryDashboard = () => {
         setStats((s) => ({ ...s, activeCount: 0 }));
         return;
       }
-      const url = `http://localhost:8080/api/delivery-partners/${id}/orders`;
-      const res = await axios.get(url);
+      const url = `/delivery-partners/${id}/orders`;
+      const res = await apiClient.get(url);
       const data = Array.isArray(res?.data) ? res.data : [];
       setActiveOrders(data);
       setStats((s) => ({ ...s, activeCount: data.length }));
@@ -129,7 +128,7 @@ const DeliveryDashboard = () => {
 
   const handleOutForDelivery = async (orderId) => {
     try {
-      await axios.put(`http://localhost:8080/api/orders/${orderId}/status`, null, { params: { orderStatus: "OUT_FOR_DELIVERY" } });
+      await apiClient.put(`/orders/${orderId}/status`, null, { params: { orderStatus: "OUT_FOR_DELIVERY" } });
       await loadActiveOrders();
       setRidingOrderId(orderId);
       const id = resolvePartnerId();
@@ -146,10 +145,10 @@ const DeliveryDashboard = () => {
         if (loc.latitude && loc.longitude) {
           setRiderPosition({ lat: loc.latitude, lng: loc.longitude });
           try {
-            await axios.put(`http://localhost:8080/api/delivery-partners/${id}/availability`, {
+            await apiClient.put(`/delivery-partners/${id}/availability`, {
               available: true,
               currentLocation: { latitude: loc.latitude, longitude: loc.longitude },
-            }, { headers: { "Content-Type": "application/json" } });
+            });
           } catch { console.debug("availability update failed"); }
         }
       }, 5000);
@@ -193,10 +192,10 @@ const DeliveryDashboard = () => {
           if (loc.latitude && loc.longitude) {
             setRiderPosition({ lat: loc.latitude, lng: loc.longitude });
             try {
-              await axios.put(`http://localhost:8080/api/delivery-partners/${id}/availability`, {
+              await apiClient.put(`/delivery-partners/${id}/availability`, {
                 available: true,
                 currentLocation: { latitude: loc.latitude, longitude: loc.longitude },
-              }, { headers: { "Content-Type": "application/json" } });
+              });
             } catch { console.debug("availability update failed"); }
           }
         }, 5000);

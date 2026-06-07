@@ -299,7 +299,7 @@ public class OrderService {
 						"Delivery partner not found with id: " + deliveryPartnerId));
 		if (order.getDeliveryPartner() != null) {
 			// Check if delivery partner is available
-			if (Boolean.TRUE.equals(deliveryPartner.getAvailable())) {
+			if (!Boolean.TRUE.equals(deliveryPartner.getAvailable())) {
 				throw new ValidationException("Delivery partner is not available");
 			}
 		}

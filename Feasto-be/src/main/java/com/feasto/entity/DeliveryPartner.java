@@ -34,8 +34,6 @@ import lombok.Setter;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Setter
-@Getter
 
 @Cacheable
 @Cache(usage = CacheConcurrencyStrategy.READ_WRITE)
@@ -56,7 +54,7 @@ public class DeliveryPartner {
     @Column(unique = true)
     private String email;
 
-    private String password; // Plaintext for now; recommend hashing
+    private String password; // BCrypt-hashed on registration
 
     private String vehicleDetails; // Optional
 
@@ -78,111 +76,5 @@ public class DeliveryPartner {
 
     @OneToMany(mappedBy = "deliveryPartner", cascade = CascadeType.ALL)
     private List<Order> orders = new ArrayList<>();
-
-	public Long getDeliveryPartnerId() {
-		return deliveryPartnerId;
-	}
-
-	public void setDeliveryPartnerId(Long deliveryPartnerId) {
-		this.deliveryPartnerId = deliveryPartnerId;
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public void setName(String name) {
-		this.name = name;
-	}
-
-	public String getPhoneNumber() {
-		return phoneNumber;
-	}
-
-	public void setPhoneNumber(String phoneNumber) {
-		this.phoneNumber = phoneNumber;
-	}
-
-	public String getEmail() {
-		return email;
-	}
-
-	public void setEmail(String email) {
-		this.email = email;
-	}
-
-	public String getPassword() {
-		return password;
-	}
-
-	public void setPassword(String password) {
-		this.password = password;
-	}
-
-	public String getVehicleDetails() {
-		return vehicleDetails;
-	}
-
-	public void setVehicleDetails(String vehicleDetails) {
-		this.vehicleDetails = vehicleDetails;
-	}
-
-	public Role getRole() {
-		return role;
-	}
-
-	public void setRole(Role role) {
-		this.role = role;
-	}
-
-	public Boolean getAvailable() {
-		return available;
-	}
-
-	public void setAvailable(Boolean available) {
-		this.available = available;
-	}
-
-	public Location getCurrentLocation() {
-		return currentLocation;
-	}
-
-	public void setCurrentLocation(Location currentLocation) {
-		this.currentLocation = currentLocation;
-	}
-
-	public Double getAverageRating() {
-		return averageRating;
-	}
-
-	public void setAverageRating(Double averageRating) {
-		this.averageRating = averageRating;
-	}
-
-	public LocalDateTime getCreatedAt() {
-		return createdAt;
-	}
-
-	public void setCreatedAt(LocalDateTime createdAt) {
-		this.createdAt = createdAt;
-	}
-
-	public LocalDateTime getUpdatedAt() {
-		return updatedAt;
-	}
-
-	public void setUpdatedAt(LocalDateTime updatedAt) {
-		this.updatedAt = updatedAt;
-	}
-
-	public List<Order> getOrders() {
-		return orders;
-	}
-
-	public void setOrders(List<Order> orders) {
-		this.orders = orders;
-	}
-    
-    
 
 }

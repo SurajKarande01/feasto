@@ -13,6 +13,7 @@ import com.feasto.enums.Role;
 
 import jakarta.persistence.Cacheable;
 import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -54,8 +55,9 @@ public class Restaurant {
     private String phoneNumber;
 
     // Credentials for restaurant login
+    @Column(unique = true)
     private String email;
-    private String password; // NOTE: Plain text for now; consider hashing with BCrypt
+    private String password; // BCrypt-hashed on registration
 
     private String cuisineType; // Or List<String> if multiple
 
@@ -84,149 +86,21 @@ public class Restaurant {
     @OneToMany(mappedBy = "restaurant", cascade = CascadeType.ALL)
     private List<Review> reviews = new ArrayList<>();
 
-	public Long getRestaurantId() {
-		return restaurantId;
-	}
+    public Address getAddress() {
+        return address;
+    }
 
-	public void setRestaurantId(Long restaurantId) {
-		this.restaurantId = restaurantId;
-	}
+    public void setAddress(Address address) {
+        this.address = address;
+    }
 
-	public String getName() {
-		return name;
-	}
+    public Double getRating() {
+        return rating;
+    }
 
-	public void setName(String name) {
-		this.name = name;
-	}
+    public void setRating(Double rating) {
+        this.rating = rating;
+    }
 
-	public String getDescription() {
-		return description;
-	}
 
-	public void setDescription(String description) {
-		this.description = description;
-	}
-
-	public Address getAddress() {
-		return address;
-	}
-
-	public void setAddress(Address address) {
-		this.address = address;
-	}
-
-	public String getPhoneNumber() {
-		return phoneNumber;
-	}
-
-	public void setPhoneNumber(String phoneNumber) {
-		this.phoneNumber = phoneNumber;
-	}
-
-	public String getEmail() {
-		return email;
-	}
-
-	public void setEmail(String email) {
-		this.email = email;
-	}
-
-	public String getPassword() {
-		return password;
-	}
-
-	public void setPassword(String password) {
-		this.password = password;
-	}
-
-	public String getCuisineType() {
-		return cuisineType;
-	}
-
-	public void setCuisineType(String cuisineType) {
-		this.cuisineType = cuisineType;
-	}
-
-	public Double getRating() {
-		return rating;
-	}
-
-	public void setRating(Double rating) {
-		this.rating = rating;
-	}
-
-	public Boolean getIsActive() {
-		return isActive;
-	}
-
-	public void setIsActive(Boolean isActive) {
-		this.isActive = isActive;
-	}
-
-	public Role getRole() {
-		return role;
-	}
-
-	public void setRole(Role role) {
-		this.role = role;
-	}
-
-	public LocalDateTime getCreatedAt() {
-		return createdAt;
-	}
-
-	public void setCreatedAt(LocalDateTime createdAt) {
-		this.createdAt = createdAt;
-	}
-
-	public LocalDateTime getUpdatedAt() {
-		return updatedAt;
-	}
-
-	public void setUpdatedAt(LocalDateTime updatedAt) {
-		this.updatedAt = updatedAt;
-	}
-
-	public String getImageUrl() {
-		return imageUrl;
-	}
-
-	public void setImageUrl(String imageUrl) {
-		this.imageUrl = imageUrl;
-	}
-
-	public String getCloudinaryPublicId() {
-		return cloudinaryPublicId;
-	}
-
-	public void setCloudinaryPublicId(String cloudinaryPublicId) {
-		this.cloudinaryPublicId = cloudinaryPublicId;
-	}
-
-	public List<MenuItem> getMenuItems() {
-		return menuItems;
-	}
-
-	public void setMenuItems(List<MenuItem> menuItems) {
-		this.menuItems = menuItems;
-	}
-
-	public List<Order> getOrders() {
-		return orders;
-	}
-
-	public void setOrders(List<Order> orders) {
-		this.orders = orders;
-	}
-
-	public List<Review> getReviews() {
-		return reviews;
-	}
-
-	public void setReviews(List<Review> reviews) {
-		this.reviews = reviews;
-	}
-    
-    
-}
+}

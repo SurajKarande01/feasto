@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import { getRandomRestaurants } from "../../services/api/restaurantService";
 
 const FilteredRestaurant = () => {
   const [restaurants, setRestaurants] = useState([]);
@@ -16,12 +17,10 @@ const FilteredRestaurant = () => {
       setLoading(true);
       setError("");
       try {
-        const res = await fetch("http://localhost:8080/api/restaurants/random");
-        if (!res.ok) throw new Error(`API error ${res.status}`);
-        const data = await res.json();
+        const data = await getRandomRestaurants(12);
         setRestaurants(Array.isArray(data) ? data : []);
       } catch (err) {
-        setError(err.message || "Failed to load restaurants");
+        setError(err.response?.data?.error || err.message || "Failed to load restaurants");
       } finally {
         setLoading(false);
       }

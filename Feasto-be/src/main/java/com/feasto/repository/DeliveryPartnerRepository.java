@@ -12,4 +12,6 @@ public interface DeliveryPartnerRepository extends JpaRepository<DeliveryPartner
     List<DeliveryPartner> findByAvailableTrue();
 
     java.util.Optional<DeliveryPartner> findByEmailIgnoreCase(String email);
+
+    boolean existsByEmailIgnoreCase(String email);
 }

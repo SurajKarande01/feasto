@@ -12,7 +12,6 @@ const Footer = () => {
         <div className="flex gap-4">
           <Link to="/customer-dashboard" className="hover:underline">Home</Link>
           <Link to="/orders" className="hover:underline">Orders</Link>
-          <Link to="/cart" className="hover:underline">Cart</Link>
           <Link to="/profile" className="hover:underline">Profile</Link>
         </div>
         <div className="text-right md:text-right text-gray-600">© {year} Feasto</div>

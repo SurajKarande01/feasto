@@ -73,7 +73,7 @@ public class Order {
 
     private LocalDateTime deliveryTime; // Nullable
 
-    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = jakarta.persistence.FetchType.EAGER)
     private List<OrderItem> orderItems = new ArrayList<>();
 
 	public Long getOrderId() {

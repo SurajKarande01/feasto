@@ -1,5 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "react-toastify";
+import apiClient from "../../services/api/apiClient";
+
+const getRestaurantId = () => {
+  try {
+    const raw = localStorage.getItem("restaurantProfile");
+    if (!raw) return null;
+    const p = JSON.parse(raw);
+    return p?.id ?? p?.restaurantId ?? null;
+  } catch { return null; }
+};
 
 const RestaurantOrders = () => {
   const [ordersPage, setOrdersPage] = useState({
@@ -28,15 +38,13 @@ const RestaurantOrders = () => {
       setLoading(true);
       setError("");
       try {
-        const base = `http://localhost:8080/api/restaurants/1/orders`;
-        const params = new URLSearchParams();
-        params.set("page", String(page));
-        params.set("limit", String(limit));
-        params.set("status", statusTab);
-        const url = `${base}?${params.toString()}`;
-        const res = await fetch(url, { signal: controller.signal });
-        if (!res.ok) throw new Error(`Failed to load orders (${res.status})`);
-        const data = await res.json();
+        const rid = getRestaurantId();
+        if (!rid) { setError("Restaurant profile not found"); setLoading(false); return; }
+        const res = await apiClient.get(`/restaurants/${rid}/orders`, {
+          params: { page, limit, status: statusTab },
+          signal: controller.signal,
+        });
+        const data = res.data;
         setOrdersPage({
           content: Array.isArray(data?.content) ? data.content : [],
           totalPages: data?.totalPages ?? 0,
@@ -65,13 +73,8 @@ const RestaurantOrders = () => {
   const loadAvailablePartners = async () => {
     try {
       setPartnersLoading(true);
-      const res = await fetch(
-        "http://localhost:8080/api/delivery-partners/available"
-      );
-      if (!res.ok)
-        throw new Error("Failed to load available delivery partners");
-      const data = await res.json();
-      setAvailablePartners(Array.isArray(data) ? data : []);
+      const res = await apiClient.get("/delivery-partners/available");
+      setAvailablePartners(Array.isArray(res.data) ? res.data : []);
     } catch (e) {
       toast.error(e.message || "Could not fetch delivery partners");
     } finally {
@@ -81,9 +84,7 @@ const RestaurantOrders = () => {
 
   const handleAutoAssign = async (orderId) => {
     try {
-      const url = `http://localhost:8080/api/orders/${orderId}/auto-assign-delivery-partner`;
-      const res = await fetch(url, { method: "POST" });
-      if (!res.ok) throw new Error("Auto assignment failed");
+      await apiClient.post(`/orders/${orderId}/auto-assign-delivery-partner`);
       toast.success("Delivery partner auto-assigned");
       setRefreshTick((t) => t + 1);
     } catch (e) {
@@ -98,9 +99,7 @@ const RestaurantOrders = () => {
       return;
     }
     try {
-      const url = `http://localhost:8080/api/orders/${orderId}/assign-delivery-partner?deliveryPartnerId=${partnerId}`;
-      const res = await fetch(url, { method: "POST" });
-      if (!res.ok) throw new Error("Manual assignment failed");
+      await apiClient.post(`/orders/${orderId}/assign-delivery-partner`, null, { params: { deliveryPartnerId: partnerId } });
       toast.success("Delivery partner assigned successfully");
       setRefreshTick((t) => t + 1);
     } catch (e) {

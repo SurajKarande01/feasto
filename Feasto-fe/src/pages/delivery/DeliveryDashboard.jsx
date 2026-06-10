@@ -19,7 +19,25 @@ const DeliveryDashboard = () => {
   const [activeOrders, setActiveOrders] = useState([]);
   const [ordersLoading, setOrdersLoading] = useState(false);
   const [ordersError, setOrdersError] = useState("");
-  const weekEarnings = [650, 720, 480, 910, 840, 0, 0];
+  // Compute weekly earnings from delivered orders
+  const weekEarnings = useMemo(() => {
+    const result = [0, 0, 0, 0, 0, 0, 0];
+    const now = new Date();
+    const dayOfWeek = now.getDay(); // 0=Sun
+    activeOrders.filter(o => o.orderStatus === "DELIVERED").forEach(o => {
+      try {
+        const d = new Date(o.orderTime);
+        const diff = Math.floor((now - d) / 86400000);
+        if (diff >= 0 && diff < 7) {
+          const idx = (dayOfWeek - diff + 7) % 7;
+          // Map Sun=0 to Mon-based index
+          const monIdx = idx === 0 ? 6 : idx - 1;
+          result[monIdx] += (o.totalAmount || 0);
+        }
+      } catch { /* ignore */ }
+    });
+    return result;
+  }, [activeOrders]);
   const [availLoading, setAvailLoading] = useState(false);
   const [availError, setAvailError] = useState("");
   const [locError, setLocError] = useState("");
@@ -167,9 +185,20 @@ const DeliveryDashboard = () => {
   }, []);
 
   useEffect(() => {
-    setStats({ earningsToday: 820, completedToday: 7, activeCount: 0 });
     loadActiveOrders();
   }, [loadActiveOrders]);
+
+  // Compute stats from real data
+  useEffect(() => {
+    const today = new Date().toDateString();
+    const todayOrders = activeOrders.filter(o => {
+      try { return new Date(o.orderTime).toDateString() === today; } catch { return false; }
+    });
+    const delivered = todayOrders.filter(o => o.orderStatus === "DELIVERED");
+    const earnings = delivered.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
+    const active = activeOrders.filter(o => !["DELIVERED","CANCELLED","REJECTED"].includes(o.orderStatus));
+    setStats({ earningsToday: Math.round(earnings), completedToday: delivered.length, activeCount: active.length });
+  }, [activeOrders]);
 
   // If page refreshes and there is an order already OUT_FOR_DELIVERY, show its map and resume updates
   useEffect(() => {
@@ -256,7 +285,7 @@ const DeliveryDashboard = () => {
         </div>
         <div className="p-4 rounded-lg border bg-white">
           <div className="text-sm text-gray-600">Rating</div>
-          <div className="mt-2 text-2xl font-semibold">4.8</div>
+          <div className="mt-2 text-2xl font-semibold">{profile?.rating ?? "—"}</div>
         </div>
       </div>
 

@@ -184,6 +184,7 @@ public class OrderService {
 		return mapper.toOrderDTO(updatedOrder);
 	}
 
+	@Transactional(readOnly = true)
 	@Cacheable(value = "orderById", key = "#id")
 	public OrderDTO getOrderById(Long id) {
 		Order order = orderRepository.findById(id)
@@ -191,6 +192,7 @@ public class OrderService {
 		return mapper.toOrderDTO(order);
 	}
 
+	@Transactional(readOnly = true)
 	@Cacheable(value = "ordersByUser", key = "#userId")
 	public List<OrderDTO> getOrdersByUserId(Long userId) {
 		return orderRepository.findByUser_UserId(userId).stream()
@@ -198,6 +200,7 @@ public class OrderService {
 				.collect(Collectors.toList());
 	}
 
+	@Transactional(readOnly = true)
 	@Cacheable(value = "ordersByRestaurant", key = "#restaurantId")
 	public List<OrderDTO> getOrdersByRestaurantId(Long restaurantId) {
 		return orderRepository.findByRestaurant_RestaurantId(restaurantId).stream()
@@ -205,6 +208,7 @@ public class OrderService {
 				.collect(Collectors.toList());
 	}
 
+	@Transactional(readOnly = true)
 	@Cacheable(value = "ordersByRestaurant", key = "#restaurantId + '-' + #page + '-' + #limit")
 	public Page<OrderDTO> getOrdersByRestaurantId(Long restaurantId, int page, int limit) {
 		Page<Order> orders = orderRepository.findByRestaurant_RestaurantId(
@@ -213,6 +217,7 @@ public class OrderService {
 		return orders.map(mapper::toOrderDTO);
 	}
 
+	@Transactional(readOnly = true)
 	@Cacheable(value = "ordersByRestaurant", key = "#restaurantId + '-' + (#status != null ? #status.name() : 'ALL') + '-' + #page + '-' + #limit")
 	public Page<OrderDTO> getOrdersByRestaurantId(Long restaurantId, OrderStatus status, int page, int limit) {
 		PageRequest pageable = PageRequest.of(page, limit, Sort.by(Sort.Direction.DESC, "orderTime"));
@@ -225,6 +230,7 @@ public class OrderService {
 		return orders.map(mapper::toOrderDTO);
 	}
 
+	@Transactional(readOnly = true)
 	@Cacheable(value = "ordersByDeliveryPartner", key = "#deliveryPartnerId", condition = "#deliveryPartnerId != null")
 	public List<OrderDTO> getOrdersByDeliveryPartnerId(Long deliveryPartnerId) {
 		return orderRepository.findByDeliveryPartner_DeliveryPartnerId(deliveryPartnerId).stream()

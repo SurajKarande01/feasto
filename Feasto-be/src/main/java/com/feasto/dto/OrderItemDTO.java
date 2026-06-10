@@ -14,6 +14,7 @@ public class OrderItemDTO {
     private Long menuItemId;
     private Integer quantity;
     private Double price;
+    private String menuItemName;
 	public Long getOrderItemId() {
 		return orderItemId;
 	}
@@ -44,6 +45,10 @@ public class OrderItemDTO {
 	public void setPrice(Double price) {
 		this.price = price;
 	}
-    
-    
+	public String getMenuItemName() {
+		return menuItemName;
+	}
+	public void setMenuItemName(String menuItemName) {
+		this.menuItemName = menuItemName;
+	}
 }

@@ -123,12 +123,12 @@ public class CustomMapper {
         return dto;
     }
 
-    // Manual mapping from OrderItem entity to OrderItemDTO
     private OrderItemDTO toOrderItemDTO(OrderItem item) {
         OrderItemDTO dto = new OrderItemDTO();
         dto.setOrderItemId(item.getOrderItemId());
         dto.setOrderId(item.getOrder() != null ? item.getOrder().getOrderId() : null);
         dto.setMenuItemId(item.getMenuItem() != null ? item.getMenuItem().getMenuItemId() : null);
+        dto.setMenuItemName(item.getMenuItem() != null ? item.getMenuItem().getName() : null);
         dto.setQuantity(item.getQuantity());
         dto.setPrice(item.getPrice());
         return dto;

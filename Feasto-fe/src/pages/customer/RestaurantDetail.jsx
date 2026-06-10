@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import apiClient from "../../services/api/apiClient";
 
 const CustomerRestaurantDetail = () => {
   const { id } = useParams();
@@ -18,13 +19,13 @@ const CustomerRestaurantDetail = () => {
   const [userId, setUserId] = useState(null);
 
   const [address, setAddress] = useState({
-    street: "123 MG Road",
-    city: "Mumbai",
-    state: "Maharashtra",
-    postalCode: "400001",
-    country: "India",
-    latitude: 19.076,
-    longitude: 72.8777,
+    street: "",
+    city: "",
+    state: "",
+    postalCode: "",
+    country: "",
+    latitude: null,
+    longitude: null,
   });
 
   useEffect(() => {
@@ -33,9 +34,8 @@ const CustomerRestaurantDetail = () => {
       setLoading(true);
       setError("");
       try {
-        const res = await fetch(`http://localhost:8080/api/restaurants/${id}/menu`);
-        if (!res.ok) throw new Error(`API error ${res.status}`);
-        const data = await res.json();
+        const res = await apiClient.get(`/restaurants/${id}/menu`);
+        const data = res.data;
         setMenu(Array.isArray(data) ? data : []);
       } catch (err) {
         setError(err.message || "Failed to load menu");
@@ -150,17 +150,11 @@ const CustomerRestaurantDetail = () => {
       })),
     };
     try {
-      const res = await fetch("http://localhost:8080/api/orders", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      if (!res.ok) throw new Error(`Order failed ${res.status}`);
-      const data = await res.json().catch(() => ({}));
+      const res = await apiClient.post("/orders", payload);
       window.alert("Order placed successfully");
       setCart({});
       setShowOrderModal(false);
-      return data;
+      return res.data;
     } catch (e) {
       window.alert(e.message || "Failed to place order");
     }

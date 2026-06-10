@@ -107,6 +107,16 @@ const RestaurantOrders = () => {
     }
   };
 
+  const handleUpdateStatus = async (orderId, newStatus) => {
+    try {
+      await apiClient.put(`/orders/${orderId}/status`, null, { params: { orderStatus: newStatus } });
+      toast.success(`Order status updated to ${newStatus}`);
+      setRefreshTick((t) => t + 1);
+    } catch (e) {
+      toast.error(e.message || "Failed to update order status");
+    }
+  };
+
   return (
     <div style={{ padding: 16 }}>
       <div
@@ -373,6 +383,52 @@ const RestaurantOrders = () => {
                       style={{ padding: 12, borderBottom: "1px solid #f3f4f6" }}
                     >
                       {o.orderStatus === "PLACED" ? (
+                        <div style={{ display: "flex", gap: 8 }}>
+                          <button
+                            onClick={() => handleUpdateStatus(o.orderId, "ACCEPTED")}
+                            style={{
+                              padding: "6px 12px",
+                              borderRadius: 6,
+                              background: "#059669",
+                              color: "#fff",
+                              border: "none",
+                              cursor: "pointer",
+                              fontWeight: "500",
+                            }}
+                          >
+                            Accept
+                          </button>
+                          <button
+                            onClick={() => handleUpdateStatus(o.orderId, "REJECTED")}
+                            style={{
+                              padding: "6px 12px",
+                              borderRadius: 6,
+                              background: "#dc2626",
+                              color: "#fff",
+                              border: "none",
+                              cursor: "pointer",
+                              fontWeight: "500",
+                            }}
+                          >
+                            Reject
+                          </button>
+                        </div>
+                      ) : o.orderStatus === "ACCEPTED" ? (
+                        <button
+                          onClick={() => handleUpdateStatus(o.orderId, "PREPARING")}
+                          style={{
+                            padding: "6px 12px",
+                            borderRadius: 6,
+                            background: "#2563eb",
+                            color: "#fff",
+                            border: "none",
+                            cursor: "pointer",
+                            fontWeight: "500",
+                          }}
+                        >
+                          Start Preparing
+                        </button>
+                      ) : o.orderStatus === "PREPARING" ? (
                         <div
                           style={{
                             display: "flex",
@@ -389,6 +445,7 @@ const RestaurantOrders = () => {
                               border: "1px solid #d1d5db",
                               background: "#111827",
                               color: "#fff",
+                              cursor: "pointer",
                             }}
                           >
                             Auto Assign
@@ -439,6 +496,7 @@ const RestaurantOrders = () => {
                               borderRadius: 6,
                               border: "1px solid #d1d5db",
                               background: "#fff",
+                              cursor: "pointer",
                             }}
                           >
                             Assign

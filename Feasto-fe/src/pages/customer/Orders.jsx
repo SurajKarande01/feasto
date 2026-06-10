@@ -121,13 +121,18 @@ const CustomerOrders = () => {
                 <div key={o.orderId} className="bg-white rounded-xl border shadow-sm overflow-hidden hover:shadow-md transition-shadow">
                   <div className="p-4 sm:p-5">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3">
-                      <div className="flex items-center gap-3 flex-wrap"><span className="font-bold text-gray-900">Order #{o.orderId}</span><StatusBadge status={o.orderStatus} /></div>
+                      <div className="flex items-center gap-3 flex-wrap">
+                        <span className="font-bold text-gray-900">Order #{o.orderId}</span>
+                        <StatusBadge status={o.orderStatus} />
+                        {o.restaurantName && <span className="text-sm text-gray-600 bg-gray-50 px-2 py-0.5 rounded-lg border">🍽️ {o.restaurantName}</span>}
+                      </div>
                       <div className="text-sm text-gray-500">{dateStr}</div>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
                       <div><span className="text-gray-500">Items:</span> <span className="font-medium">{itemsCount} item(s)</span></div>
                       <div><span className="text-gray-500">Total:</span> <span className="font-bold">₹{Number(o.totalAmount || 0).toFixed(2)}</span></div>
                       <div><span className="text-gray-500">Delivery:</span> <span>{addressStr}</span></div>
+                      {o.deliveryPartnerName && <div><span className="text-gray-500">Rider:</span> <span className="font-medium">{o.deliveryPartnerName}</span></div>}
                     </div>
                     {Array.isArray(o.orderItems) && o.orderItems.length > 0 && (
                       <div className="mt-3 pt-3 border-t border-gray-100 flex flex-wrap gap-2">
@@ -135,7 +140,7 @@ const CustomerOrders = () => {
                       </div>
                     )}
                     <div className="mt-4 flex flex-wrap gap-2">
-                      {["ACCEPTED","PREPARING","ASSIGNED","OUT_FOR_DELIVERY"].includes(o.orderStatus) && <Link to={`/order-tracking/${o.orderId}`} className="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg font-medium hover:bg-blue-700">Track Order</Link>}
+                      {["PLACED","ACCEPTED","PREPARING","ASSIGNED","OUT_FOR_DELIVERY"].includes(o.orderStatus) && <Link to={`/order-tracking/${o.orderId}`} className="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg font-medium hover:bg-blue-700">Track Order</Link>}
                       {o.orderStatus === "PLACED" && <button onClick={() => handleCancel(o.orderId)} className="px-4 py-2 bg-red-50 text-red-600 text-sm rounded-lg font-medium border border-red-200 hover:bg-red-100">Cancel Order</button>}
                       {o.orderStatus === "DELIVERED" && <button onClick={() => { setReviewOrder(o); setReviewRating(5); setReviewComment(""); }} className="px-4 py-2 bg-amber-50 text-amber-700 text-sm rounded-lg font-medium border border-amber-200 hover:bg-amber-100">★ Rate & Review</button>}
                       {o.orderStatus === "DELIVERED" && <Link to={`/restaurant/${o.restaurantId}`} className="px-4 py-2 bg-gray-50 text-gray-700 text-sm rounded-lg font-medium border hover:bg-gray-100">Reorder</Link>}

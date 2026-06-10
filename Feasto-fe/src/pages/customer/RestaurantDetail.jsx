@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 import apiClient from "../../services/api/apiClient";
 
 const CustomerRestaurantDetail = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
 
   const [menu, setMenu] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -151,12 +153,13 @@ const CustomerRestaurantDetail = () => {
     };
     try {
       const res = await apiClient.post("/orders", payload);
-      window.alert("Order placed successfully");
+      toast.success("Order placed successfully!");
       setCart({});
       setShowOrderModal(false);
+      navigate(`/order-tracking/${res.data.orderId}`);
       return res.data;
     } catch (e) {
-      window.alert(e.message || "Failed to place order");
+      toast.error(e.message || "Failed to place order");
     }
   };
 

@@ -126,7 +126,7 @@ const OrderDelivery = () => {
             <div className="flex justify-between"><span className="text-gray-500">Items</span><span className="font-medium">{itemsCount} item(s)</span></div>
             <div className="flex justify-between"><span className="text-gray-500">Total</span><span className="font-bold">₹{Number(order.totalAmount || 0).toFixed(2)}</span></div>
             <div className="flex justify-between"><span className="text-gray-500">Customer</span><span>User #{order.userId}</span></div>
-            <div className="flex justify-between"><span className="text-gray-500">Restaurant</span><span>#{order.restaurantId}</span></div>
+            <div className="flex justify-between"><span className="text-gray-500">Restaurant</span><span className="font-medium">{order.restaurantName || `#${order.restaurantId}`}</span></div>
           </div>
           {Array.isArray(order.orderItems) && order.orderItems.length > 0 && (
             <div className="mt-4 pt-4 border-t space-y-2">

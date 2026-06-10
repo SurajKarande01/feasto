@@ -66,7 +66,7 @@ public class OrderController {
         return ResponseEntity.ok(orderService.getOrdersByUserId(userId));
     }
 
-    @PreAuthorize("hasAnyRole('RESTAURANT_OWNER', 'DELIVERY_PARTNER', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('CUSTOMER', 'RESTAURANT_OWNER', 'DELIVERY_PARTNER', 'ADMIN')")
     @PutMapping("/{id}/status") // PLACED, CANCELLED, PREPARING, ACCEPTED, REJECTED, OUT_FOR_DELIVERY, DELIVERED 
     public ResponseEntity<OrderDTO> updateOrderStatus(@PathVariable Long id, @RequestParam OrderStatus orderStatus) {
         return ResponseEntity.ok(orderService.updateOrderStatus(id, orderStatus));

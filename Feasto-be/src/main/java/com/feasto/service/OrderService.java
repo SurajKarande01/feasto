@@ -244,6 +244,10 @@ public class OrderService {
 	public OrderDTO updateOrderStatus(Long id, OrderStatus status) {
 		Order order = orderRepository.findById(id)
 				.orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + id));
+		
+		// Validate order status transitions (like real food delivery platforms)
+		validateStatusTransition(order.getOrderStatus(), status);
+		
 		order.setOrderStatus(status);
 		// when delivered, set deliveryTime and handle COD / delivery partner
 		// availability
@@ -310,6 +314,7 @@ public class OrderService {
 			}
 		}
 		order.setDeliveryPartner(deliveryPartner);
+		order.setOrderStatus(OrderStatus.ASSIGNED);
 		deliveryPartner.setAvailable(false);
 		deliveryPartnerRepository.save(deliveryPartner);
 		Order updatedOrder = orderRepository.save(order);
@@ -339,5 +344,37 @@ public class OrderService {
 						"ORDER_ACCEPTED_BY_DELIVERY",
 						"Your order #" + order.getOrderId() + " has been accepted by delivery partner.",
 						order.getUser() != null ? order.getUser().getUserId() : null));
+	}
+
+	/**
+	 * Validates that the order status transition is valid.
+	 * Enforces the correct lifecycle:
+	 * PLACED → ACCEPTED / REJECTED / CANCELLED
+	 * ACCEPTED → PREPARING / CANCELLED
+	 * PREPARING → ASSIGNED
+	 * ASSIGNED → OUT_FOR_DELIVERY
+	 * OUT_FOR_DELIVERY → DELIVERED
+	 * DELIVERED, CANCELLED, REJECTED → terminal (no further transitions)
+	 */
+	private void validateStatusTransition(OrderStatus current, OrderStatus next) {
+		if (current == null || next == null) return;
+		
+		java.util.Map<OrderStatus, java.util.Set<OrderStatus>> validTransitions = java.util.Map.of(
+			OrderStatus.PLACED, java.util.Set.of(OrderStatus.ACCEPTED, OrderStatus.REJECTED, OrderStatus.CANCELLED),
+			OrderStatus.ACCEPTED, java.util.Set.of(OrderStatus.PREPARING, OrderStatus.CANCELLED),
+			OrderStatus.PREPARING, java.util.Set.of(OrderStatus.ASSIGNED),
+			OrderStatus.ASSIGNED, java.util.Set.of(OrderStatus.OUT_FOR_DELIVERY),
+			OrderStatus.OUT_FOR_DELIVERY, java.util.Set.of(OrderStatus.DELIVERED),
+			OrderStatus.DELIVERED, java.util.Set.of(),
+			OrderStatus.CANCELLED, java.util.Set.of(),
+			OrderStatus.REJECTED, java.util.Set.of()
+		);
+		
+		java.util.Set<OrderStatus> allowed = validTransitions.get(current);
+		if (allowed != null && !allowed.contains(next)) {
+			throw new ValidationException(
+				"Invalid status transition from " + current + " to " + next + 
+				". Allowed: " + allowed);
+		}
 	}
 }

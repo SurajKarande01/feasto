@@ -19,6 +19,8 @@ public class OrderDTO {
     private Long userId;
     private Long restaurantId;
     private Long deliveryPartnerId;
+    private String restaurantName;
+    private String deliveryPartnerName;
     private OrderStatus orderStatus;
     private Double totalAmount;
     private Address deliveryAddress;
@@ -84,6 +86,18 @@ public class OrderDTO {
 	}
 	public void setOrderItems(List<OrderItemDTO> orderItems) {
 		this.orderItems = orderItems;
+	}
+	public String getRestaurantName() {
+		return restaurantName;
+	}
+	public void setRestaurantName(String restaurantName) {
+		this.restaurantName = restaurantName;
+	}
+	public String getDeliveryPartnerName() {
+		return deliveryPartnerName;
+	}
+	public void setDeliveryPartnerName(String deliveryPartnerName) {
+		this.deliveryPartnerName = deliveryPartnerName;
 	}
     
 }

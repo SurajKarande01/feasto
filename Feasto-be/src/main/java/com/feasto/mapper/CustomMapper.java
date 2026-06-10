@@ -107,8 +107,11 @@ public class CustomMapper {
         dto.setOrderId(order.getOrderId());
         dto.setUserId(order.getUser() != null ? order.getUser().getUserId() : null);
         dto.setRestaurantId(order.getRestaurant() != null ? order.getRestaurant().getRestaurantId() : null);
+        dto.setRestaurantName(order.getRestaurant() != null ? order.getRestaurant().getName() : null);
         dto.setDeliveryPartnerId(
                 order.getDeliveryPartner() != null ? order.getDeliveryPartner().getDeliveryPartnerId() : null);
+        dto.setDeliveryPartnerName(
+                order.getDeliveryPartner() != null ? order.getDeliveryPartner().getName() : null);
         dto.setOrderStatus(order.getOrderStatus());
         dto.setTotalAmount(order.getTotalAmount());
         dto.setDeliveryAddress(order.getDeliveryAddress());

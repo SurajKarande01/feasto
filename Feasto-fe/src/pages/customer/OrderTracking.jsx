@@ -108,8 +108,8 @@ const CustomerOrderTracking = () => {
           <div className="space-y-3">
             <div className="flex justify-between text-sm"><span className="text-gray-500">Status</span><span className={`font-bold ${isCancelled ? "text-red-600" : isDelivered ? "text-emerald-600" : "text-blue-600"}`}>{order.orderStatus?.replace(/_/g, " ")}</span></div>
             <div className="flex justify-between text-sm"><span className="text-gray-500">Total Amount</span><span className="font-bold text-gray-900">₹{Number(order.totalAmount || 0).toFixed(2)}</span></div>
-            <div className="flex justify-between text-sm"><span className="text-gray-500">Restaurant ID</span><span className="text-gray-700">#{order.restaurantId}</span></div>
-            {order.deliveryPartnerId && <div className="flex justify-between text-sm"><span className="text-gray-500">Delivery Partner</span><span className="text-gray-700">#{order.deliveryPartnerId}</span></div>}
+            <div className="flex justify-between text-sm"><span className="text-gray-500">Restaurant</span><span className="text-gray-700 font-medium">{order.restaurantName || `#${order.restaurantId}`}</span></div>
+            {order.deliveryPartnerId && <div className="flex justify-between text-sm"><span className="text-gray-500">Delivery Partner</span><span className="text-gray-700 font-medium">{order.deliveryPartnerName || `#${order.deliveryPartnerId}`}</span></div>}
           </div>
           {Array.isArray(order.orderItems) && order.orderItems.length > 0 && (
             <div className="mt-4 pt-4 border-t">

@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import apiClient from '../../services/api/apiClient';
-import { useParams } from 'react-router-dom';
 import { 
   Utensils, MapPin, Star, Plus, Settings, ShoppingBag, 
   Trash2, Edit3, ChefHat, Clock, Search, X, Check, 
@@ -48,7 +47,7 @@ const MenuCard = ({ item, onDelete }) => (
               {item.name}
             </h3>
             <span className="font-bold text-orange-600 bg-orange-50 px-2 py-1 rounded-lg text-sm">
-                ${item.price}
+                ₹{item.price}
             </span>
           </div>
           <p className="text-xs text-gray-500 mt-2 line-clamp-2 leading-relaxed">
@@ -188,10 +187,16 @@ const AddDishForm = ({ onSave, onCancel, isSaving }) => {
 
 // --- Main Page Component ---
 const RestaurantProfile = () => {
-  // Uses React Router v6 parameters
-  const { id } = useParams();
-  // IMPORTANT: Ensure this ID exists in your PostgreSQL database
-  const restaurantId = id || 1; 
+  // Get restaurant ID from localStorage (same pattern as other restaurant pages)
+  const getRestaurantId = () => {
+    try {
+      const raw = localStorage.getItem("restaurantProfile");
+      if (!raw) return null;
+      const p = JSON.parse(raw);
+      return p?.id ?? p?.restaurantId ?? null;
+    } catch { return null; }
+  };
+  const restaurantId = getRestaurantId(); 
 
   const [restaurant, setRestaurant] = useState(null);
   const [menuItems, setMenuItems] = useState([]);

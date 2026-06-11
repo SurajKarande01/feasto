@@ -62,11 +62,9 @@ const FilteredRestaurant = () => {
     try {
       let data = [];
       if (search.trim()) {
-        // Use backend search API
         const res = await searchRestaurants(search);
         data = res.content || res || [];
       } else if (locationMode === "nearby" && coords) {
-        // Use backend nearby API
         const res = await getNearbyRestaurants({
           mylat: coords.lat,
           mylon: coords.lon,
@@ -75,7 +73,6 @@ const FilteredRestaurant = () => {
         });
         data = res.content || res || [];
       } else {
-        // Fallback to random restaurants
         data = await getRandomRestaurants(20);
       }
       setRestaurants(Array.isArray(data) ? data : []);
@@ -129,23 +126,23 @@ const FilteredRestaurant = () => {
   }, [restaurants, cuisine, city, sort]);
 
   return (
-    <div className="max-w-7xl mx-auto px-4">
+    <div className="max-w-7xl mx-auto px-6">
       {/* Search & Filter Bar */}
-      <div className="bg-white/95 rounded-2xl shadow-sm border p-4 mb-6">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+      <div className="bg-white/80 backdrop-blur-md rounded-3xl border border-slate-100 p-6 mb-8 shadow-[0_8px_30px_rgba(0,0,0,0.02)]">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div className="relative">
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search by name, cuisine..."
-              className="w-full p-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-all bg-gray-50"
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-rose-500 focus:ring-4 focus:ring-rose-500/10 transition-all shadow-inner"
             />
           </div>
           
           <select 
             value={cuisine} 
             onChange={(e)=>setCuisine(e.target.value)} 
-            className="w-full p-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500 bg-gray-50"
+            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-700 focus:outline-none focus:border-rose-500 focus:ring-4 focus:ring-rose-500/10 transition-all shadow-sm cursor-pointer"
           >
             <option value="">All Cuisines</option>
             {cuisines.map(c => (
@@ -156,7 +153,7 @@ const FilteredRestaurant = () => {
           <select 
             value={city} 
             onChange={(e)=>setCity(e.target.value)} 
-            className="w-full p-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500 bg-gray-50"
+            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-700 focus:outline-none focus:border-rose-500 focus:ring-4 focus:ring-rose-500/10 transition-all shadow-sm cursor-pointer"
           >
             <option value="">All Cities</option>
             {cities.map(c => (
@@ -167,7 +164,7 @@ const FilteredRestaurant = () => {
           <select 
             value={sort} 
             onChange={(e)=>setSort(e.target.value)} 
-            className="w-full p-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-500 bg-gray-50"
+            className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-700 focus:outline-none focus:border-rose-500 focus:ring-4 focus:ring-rose-500/10 transition-all shadow-sm cursor-pointer"
           >
             <option value="name_asc">Sort: Name A-Z</option>
             <option value="name_desc">Sort: Name Z-A</option>
@@ -177,91 +174,99 @@ const FilteredRestaurant = () => {
         </div>
 
         {/* Location status badge */}
-        <div className="mt-3 flex items-center justify-between text-xs text-gray-500">
+        <div className="mt-4 flex items-center justify-between text-xs text-slate-500 px-1">
           <div>
             {locationMode === "detecting" && <span>📍 Detecting your location...</span>}
-            {locationMode === "nearby" && <span className="text-emerald-600 font-medium">📍 Showing nearby restaurants first</span>}
-            {locationMode === "fallback" && <span>🔍 Showing popular restaurants (location unavailable)</span>}
+            {locationMode === "nearby" && (
+              <span className="bg-emerald-50 text-emerald-700 font-bold px-3 py-1 rounded-full flex items-center gap-1.5 shadow-sm border border-emerald-100">
+                📍 Showing nearby restaurants first
+              </span>
+            )}
+            {locationMode === "fallback" && (
+              <span className="bg-amber-50 text-amber-700 font-bold px-3 py-1 rounded-full flex items-center gap-1.5 shadow-sm border border-amber-100">
+                🔍 Showing popular restaurants (fallback)
+              </span>
+            )}
           </div>
           {coords && (
-            <span className="text-gray-400">Lat: {coords.lat.toFixed(4)}, Lon: {coords.lon.toFixed(4)}</span>
+            <span className="text-slate-400 font-medium">GPS: {coords.lat.toFixed(4)}, {coords.lon.toFixed(4)}</span>
           )}
         </div>
       </div>
 
       {loading && (
-        <div className="flex flex-col items-center justify-center py-12">
-          <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-          <span className="text-gray-500 text-sm mt-3">Fetching restaurants…</span>
+        <div className="flex flex-col items-center justify-center py-16 bg-white/50 rounded-3xl border border-slate-100">
+          <div className="w-9 h-9 border-4 border-rose-500 border-t-transparent rounded-full animate-spin"></div>
+          <span className="text-slate-500 font-semibold text-xs mt-3 tracking-wide">Fetching restaurants…</span>
         </div>
       )}
       
-      {error && <div className="text-center text-red-600 py-4 font-medium">{error}</div>}
+      {error && <div className="text-center text-rose-500 bg-rose-50 border border-rose-100 rounded-2xl py-4 font-semibold text-sm">{error}</div>}
 
       {!loading && !error && (
-        <div className="grid grid-cols-1 gap-6 pb-8">
+        <div className="grid grid-cols-1 gap-8 pb-12">
           {filtered.map(r => {
             const addr = r.address || {};
             const rating = r.rating ?? "—";
             const distance = r.distanceKm != null ? `${r.distanceKm.toFixed(1)} km` : "—";
             return (
-              <div key={r.restaurantId} className="bg-white rounded-2xl shadow-sm border hover:shadow-md transition-shadow overflow-hidden">
+              <div key={r.restaurantId} className="bg-white rounded-[28px] border border-slate-100 shadow-[0_8px_30px_rgba(0,0,0,0.01)] hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 overflow-hidden">
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-start">
-                  <div className="md:col-span-1 overflow-hidden flex items-center justify-center p-4">
+                  <div className="md:col-span-1 overflow-hidden flex items-center justify-center p-5">
                     {r.imageUrl ? (
                       <img
                         src={r.imageUrl}
                         alt={`${r.name}`}
-                        className="w-full h-48 md:h-36 object-cover rounded-xl"
+                        className="w-full h-48 md:h-36 object-cover rounded-2xl shadow-sm border border-slate-100"
                         loading="lazy"
                       />
                     ) : (
-                      <div className="w-full h-36 bg-gray-50 rounded-xl flex items-center justify-center text-gray-400 text-sm border border-dashed border-gray-200">
+                      <div className="w-full h-36 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-400 text-xs font-semibold border border-dashed border-slate-200">
                         No Image
                       </div>
                     )}
                   </div>
-                  <div className="md:col-span-3 p-4 pl-0 md:pl-4">
-                    <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-2">
+                  <div className="md:col-span-3 p-6 pl-0 md:pl-6">
+                    <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3">
                       <div>
-                        <h3 className="text-xl font-bold text-gray-900">{r.name}</h3>
-                        <p className="text-sm text-gray-500 mt-0.5">{r.cuisineType || "Cuisine"}</p>
+                        <span className="text-[10px] font-extrabold text-rose-500 uppercase tracking-widest block mb-0.5">{r.cuisineType || "Cuisine"}</span>
+                        <h3 className="text-2xl font-black text-slate-900 tracking-tight leading-none">{r.name}</h3>
                       </div>
-                      <div className="text-sm text-gray-600 flex gap-4 bg-gray-50 px-3 py-1.5 rounded-xl border border-gray-100">
-                        <span>⭐ <span className="font-semibold text-gray-900">{rating}</span></span>
-                        <span>📍 <span className="font-semibold text-gray-900">{distance}</span></span>
+                      <div className="text-xs text-slate-600 flex gap-4 bg-slate-50 px-3.5 py-2 rounded-xl border border-slate-100 font-semibold self-start shadow-sm">
+                        <span className="flex items-center gap-1">⭐ <span className="text-slate-800">{rating}</span></span>
+                        <span className="flex items-center gap-1">📍 <span className="text-slate-800">{distance}</span></span>
                       </div>
                     </div>
                     {r.description && (
-                      <p className="mt-2 text-sm text-gray-600 line-clamp-2">{r.description}</p>
+                      <p className="mt-3 text-slate-500 text-sm leading-relaxed line-clamp-2">{r.description}</p>
                     )}
-                    <div className="mt-2 text-xs text-gray-500">
-                      <span className="font-semibold">Address:</span>
+                    <div className="mt-3 text-xs text-slate-400 flex items-center gap-1">
+                      <span className="font-semibold text-slate-600">Address:</span>
                       <span> {addr.street ? `${addr.street}, ` : ""}{addr.city || ""}{addr.state ? `, ${addr.state}` : ""}{addr.postalCode ? `, ${addr.postalCode}` : ""}</span>
                     </div>
                     
                     {/* Special Menu Items */}
                     {Array.isArray(r.specialMenuItems) && r.specialMenuItems.length > 0 && (
-                      <div className="mt-4">
-                        <div className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Signature Dishes</div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                      <div className="mt-5">
+                        <div className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider mb-2.5">Signature Dishes</div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                           {r.specialMenuItems.map(mi => (
-                            <div key={mi.menuItemId} className="p-2.5 rounded-xl border border-gray-100 bg-gray-50 flex items-center justify-between gap-2">
-                              <div>
-                                <div className="text-sm font-semibold text-gray-950">{mi.name}</div>
-                                <div className="text-xs text-gray-500 line-clamp-1">{mi.description}</div>
+                            <div key={mi.menuItemId} className="p-3 rounded-2xl border border-slate-100 bg-slate-50/70 hover:bg-slate-50 transition-colors flex items-center justify-between gap-3">
+                              <div className="min-w-0">
+                                <div className="text-xs font-extrabold text-slate-800 truncate">{mi.name}</div>
+                                <div className="text-[10px] text-slate-500 truncate mt-0.5">{mi.description}</div>
                               </div>
-                              <div className="text-sm font-bold text-gray-900">₹{mi.price}</div>
+                              <div className="text-xs font-black text-rose-600 shrink-0">₹{mi.price}</div>
                             </div>
                           ))}
                         </div>
                       </div>
                     )}
                     
-                    <div className="mt-4 flex gap-2">
+                    <div className="mt-5 flex gap-2">
                       <Link 
                         to={`/restaurant/${r.restaurantId}`} 
-                        className="px-5 py-2 bg-blue-600 text-white text-sm font-semibold rounded-xl hover:bg-blue-700 transition-colors shadow-sm"
+                        className="px-6 py-2.5 bg-rose-500 hover:bg-rose-600 active:scale-98 text-white text-xs font-bold rounded-xl transition-all duration-200 shadow-md shadow-rose-500/20 cursor-pointer"
                       >
                         Order Now
                       </Link>
@@ -272,10 +277,10 @@ const FilteredRestaurant = () => {
             );
           })}
           {!filtered.length && (
-            <div className="col-span-full text-center text-gray-500 py-12 bg-white rounded-2xl border">
-              <div className="text-5xl mb-3">🔍</div>
-              <h3 className="text-lg font-semibold text-gray-700">No restaurants match your search</h3>
-              <p className="text-gray-500 text-sm mt-1">Try clearing your filters or changing your search term.</p>
+            <div className="col-span-full text-center text-slate-500 py-16 bg-white rounded-3xl border border-slate-100 shadow-sm">
+              <div className="text-4xl mb-3">🔍</div>
+              <h3 className="text-base font-bold text-slate-700">No restaurants match your search</h3>
+              <p className="text-slate-400 text-xs mt-1">Try clearing your filters or changing your search term.</p>
             </div>
           )}
         </div>

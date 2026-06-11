@@ -63,9 +63,9 @@ const MenuCard = ({ item, onDelete, onEdit }) => {
   }
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border p-4 flex flex-col hover:shadow-md transition-shadow overflow-hidden">
+    <div className="bg-white border border-slate-100 rounded-3xl p-5 flex flex-col hover:shadow-lg transition-all duration-300 overflow-hidden">
       {src ? (
-        <div className="w-full h-40 mb-3 bg-gray-100 rounded-xl overflow-hidden relative">
+        <div className="w-full h-44 mb-4 bg-slate-50 rounded-2xl overflow-hidden relative border border-slate-100">
           <img
             src={src}
             srcSet={srcSet || undefined}
@@ -76,41 +76,45 @@ const MenuCard = ({ item, onDelete, onEdit }) => {
           />
         </div>
       ) : (
-        <div className="w-full h-40 mb-3 bg-gray-50 rounded-xl flex items-center justify-center text-gray-400 text-sm border border-dashed border-gray-200">
+        <div className="w-full h-44 mb-4 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-400 text-xs font-semibold border border-dashed border-slate-200">
           No Image
         </div>
       )}
       <div className="flex-1 flex flex-col justify-between">
         <div>
-          <div className="flex items-start justify-between gap-2">
-            <h3 className="font-bold text-gray-900 truncate">{item.name}</h3>
+          <div className="flex items-start justify-between gap-3">
+            <h3 className="font-extrabold text-slate-900 truncate text-base">{item.name}</h3>
             <div className="flex items-center gap-1.5 flex-shrink-0">
               <button
                 onClick={() => onEdit(item)}
                 title="Edit"
-                className="p-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors"
+                className="p-2 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-700 transition-colors border border-slate-200/50 cursor-pointer"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                 </svg>
               </button>
               <button
                 onClick={() => onDelete(item)}
                 title="Delete"
-                className="p-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-colors"
+                className="p-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 transition-colors border border-rose-100/50 cursor-pointer"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                 </svg>
               </button>
             </div>
           </div>
-          <p className="text-sm text-gray-500 mt-1 line-clamp-2">{item.description}</p>
+          {item.description && <p className="text-xs text-slate-500 mt-1.5 leading-relaxed line-clamp-2">{item.description}</p>}
         </div>
-        <div className="mt-4 pt-3 border-t border-gray-50 flex items-center justify-between">
-          <span className="font-extrabold text-gray-900 text-lg">₹{item.price}</span>
-          <span className="text-xs font-bold text-blue-700 bg-blue-50 px-2.5 py-1 rounded-full">{item.category}</span>
-          <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border ${item.isAvailable ? "bg-green-50 text-green-700 border-green-200" : "bg-red-50 text-red-700 border-red-200"}`}>
+        <div className="mt-5 pt-3.5 border-t border-slate-50 flex items-center justify-between">
+          <span className="font-black text-slate-950 text-lg">₹{item.price}</span>
+          <span className="text-[10px] font-bold text-rose-500 bg-rose-50 px-2.5 py-1 rounded-full border border-rose-100/40 uppercase tracking-wider">{item.category}</span>
+          <span className={`text-[10px] font-extrabold px-2.5 py-1 rounded-full border uppercase tracking-wider ${
+            item.isAvailable 
+              ? "bg-emerald-50 text-emerald-700 border-emerald-100/60" 
+              : "bg-rose-50 text-rose-700 border-rose-100/60"
+          }`}>
             {item.isAvailable ? "Available" : "Unavailable"}
           </span>
         </div>
@@ -257,12 +261,10 @@ const MenuManagement = () => {
       }
 
       if (editingItem) {
-        // Edit Mode
         const url = `/restaurants/${rid}/menu/${editingItem.menuItemId}`;
         await apiClient.put(url, fd, { headers: { "Content-Type": "multipart/form-data" } });
         toast.success("Menu item updated successfully");
       } else {
-        // Create Mode
         const url = `/restaurants/${rid}/menu`;
         await apiClient.post(url, fd, { headers: { "Content-Type": "multipart/form-data" } });
         toast.success("Menu item added successfully");
@@ -277,32 +279,48 @@ const MenuManagement = () => {
   };
 
   return (
-    <div className="min-h-screen pb-12">
-      <div className="max-w-7xl mx-auto px-4 py-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+    <div className="min-h-screen pb-12 bg-white">
+      <div className="max-w-7xl mx-auto px-6 py-4">
+        
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5 mb-8">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Menu Management</h1>
-            <p className="text-sm text-gray-500 mt-1">Add, update or delete your restaurant menu items</p>
+            <span className="text-[10px] font-extrabold text-rose-500 uppercase tracking-widest block mb-0.5">Catalog Manager</span>
+            <h1 className="text-3xl font-black text-slate-900 tracking-tight leading-none">Menu Management</h1>
+            <p className="text-slate-500 text-sm mt-1">Add, update or delete your restaurant menu items</p>
           </div>
           <div className="flex gap-2">
-            <button onClick={doFetch} className="px-4 py-2 border rounded-xl text-sm font-semibold hover:bg-gray-50 bg-white">
+            <button 
+              onClick={doFetch} 
+              className="px-4 py-2.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold text-xs rounded-xl transition-all shadow-sm cursor-pointer"
+            >
               Refresh
             </button>
-            <button onClick={handleCreateNew} className="px-4 py-2 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-700 transition-colors shadow-sm">
+            <button 
+              onClick={handleCreateNew} 
+              className="px-5 py-2.5 bg-rose-500 hover:bg-rose-600 active:scale-98 text-white font-bold text-xs rounded-xl shadow-md shadow-rose-500/20 transition-all duration-200 cursor-pointer"
+            >
               + Add Menu Item
             </button>
           </div>
         </div>
 
-        {loading && <div className="text-center py-16 text-gray-500">Loading menu…</div>}
-        {error && <div className="text-center text-red-600 py-16 font-medium">{error}</div>}
+        {loading && (
+          <div className="flex flex-col items-center justify-center py-20 bg-slate-50/50 rounded-3xl border border-slate-100">
+            <div className="w-8 h-8 border-4 border-rose-500 border-t-transparent rounded-full animate-spin"></div>
+            <span className="text-slate-500 font-semibold text-xs mt-3 tracking-wide">Loading menu items…</span>
+          </div>
+        )}
+        {error && <div className="text-center text-rose-500 bg-rose-50 border border-rose-100 rounded-2xl py-4 font-semibold text-sm">{error}</div>}
 
         {!loading && !error && menu.length === 0 && (
-          <div className="text-center py-16 bg-white rounded-2xl border">
-            <div className="text-5xl mb-3">🍳</div>
-            <h3 className="text-lg font-semibold text-gray-700">Your menu is empty</h3>
-            <p className="text-gray-500 text-sm mt-1 mb-4">Add your first menu item to start receiving orders!</p>
-            <button onClick={handleCreateNew} className="px-5 py-2.5 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700">
+          <div className="text-center py-20 bg-slate-50/50 rounded-3xl border border-slate-100">
+            <div className="text-5xl mb-4">🍳</div>
+            <h3 className="text-base font-bold text-slate-700">Your menu is empty</h3>
+            <p className="text-slate-400 text-xs mt-1 mb-6">Add your first menu item to start receiving orders!</p>
+            <button 
+              onClick={handleCreateNew} 
+              className="px-5 py-2.5 bg-rose-500 hover:bg-rose-600 text-white font-bold text-xs rounded-xl shadow-md shadow-rose-500/20 transition-all cursor-pointer"
+            >
               Add Menu Item
             </button>
           </div>
@@ -323,85 +341,97 @@ const MenuManagement = () => {
 
         {/* Modal */}
         {modalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <div className="absolute inset-0 bg-black/45" onClick={closeModal} />
-            <div className="relative bg-white rounded-2xl w-full max-w-lg shadow-xl p-6 overflow-y-auto max-h-[90vh]">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-bold text-gray-900">{editingItem ? "Edit Menu Item" : "Add Menu Item"}</h3>
-                <button onClick={closeModal} className="text-gray-500 hover:text-gray-700">✕</button>
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 backdrop-blur-sm p-4">
+            <div className="absolute inset-0" onClick={closeModal} />
+            <div className="relative bg-white rounded-[32px] w-full max-w-lg shadow-2xl p-6 md:p-8 overflow-y-auto max-h-[85vh] border border-slate-100">
+              <div className="flex items-center justify-between border-b border-slate-50 pb-4 mb-4">
+                <div>
+                  <span className="text-[10px] font-extrabold text-rose-500 uppercase tracking-widest block mb-0.5">Dish Details</span>
+                  <h3 className="text-lg font-black text-slate-900 tracking-tight">{editingItem ? "Edit Menu Item" : "Add Menu Item"}</h3>
+                </div>
+                <button 
+                  onClick={closeModal} 
+                  className="p-1.5 rounded-lg hover:bg-slate-50 border border-slate-100 text-slate-500"
+                >
+                  ✕
+                </button>
               </div>
               <form onSubmit={handleSave} className="space-y-4">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">Item Name *</label>
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Item Name *</label>
                   <input
                     required
-                    className="w-full p-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-100 bg-gray-50 focus:bg-white transition-all"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-rose-500 focus:ring-4 focus:ring-rose-500/10 transition-all shadow-sm"
                     value={formValues.name}
                     onChange={(e) => setFormValues((v) => ({ ...v, name: e.target.value }))}
                     placeholder="E.g. Butter Chicken"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">Description</label>
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Description</label>
                   <textarea
-                    className="w-full p-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-100 bg-gray-50 focus:bg-white transition-all"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-rose-500 focus:ring-4 focus:ring-rose-500/10 transition-all shadow-sm resize-none"
                     value={formValues.description}
                     onChange={(e) => setFormValues((v) => ({ ...v, description: e.target.value }))}
                     placeholder="Short description of the dish..."
                     rows={3}
                   />
                 </div>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-3.5">
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1">Price (₹) *</label>
+                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Price (₹) *</label>
                     <input
                       required
                       type="number"
                       step="0.01"
-                      className="w-full p-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-100 bg-gray-50 focus:bg-white transition-all"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-rose-500 focus:ring-4 focus:ring-rose-500/10 transition-all shadow-sm"
                       value={formValues.price}
                       onChange={(e) => setFormValues((v) => ({ ...v, price: e.target.value }))}
                       placeholder="299"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1">Category *</label>
+                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Category *</label>
                     <input
                       required
-                      className="w-full p-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-100 bg-gray-50 focus:bg-white transition-all"
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-rose-500 focus:ring-4 focus:ring-rose-500/10 transition-all shadow-sm"
                       value={formValues.category}
                       onChange={(e) => setFormValues((v) => ({ ...v, category: e.target.value }))}
                       placeholder="E.g. Main Course"
                     />
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2.5 pt-2">
                   <input
                     type="checkbox"
                     id="isAvailable"
                     checked={formValues.isAvailable}
                     onChange={(e) => setFormValues((v) => ({ ...v, isAvailable: e.target.checked }))}
-                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    className="h-4.5 w-4.5 text-rose-600 focus:ring-rose-500/10 border-slate-300 rounded-lg cursor-pointer"
                   />
-                  <label htmlFor="isAvailable" className="text-sm font-medium text-gray-700">Available for ordering</label>
+                  <label htmlFor="isAvailable" className="text-xs font-bold text-slate-600 cursor-pointer">Available for ordering</label>
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">Item Image</label>
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Item Image</label>
                   <input
                     type="file"
                     accept="image/*"
                     onChange={onFileChange}
-                    className="w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                    className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-[10px] file:font-bold file:bg-slate-200 file:text-slate-700 hover:file:bg-slate-300 file:cursor-pointer"
                   />
                 </div>
-                <div className="mt-6 flex justify-end gap-3 border-t pt-4">
-                  <button type="button" onClick={closeModal} className="px-4 py-2 border rounded-xl text-sm font-semibold hover:bg-gray-50">
+                <div className="mt-6 flex justify-end gap-3 border-t border-slate-50 pt-5">
+                  <button 
+                    type="button" 
+                    onClick={closeModal} 
+                    className="px-4 py-2.5 border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold rounded-xl transition-all cursor-pointer"
+                  >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={saving}
-                    className="px-5 py-2 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-700 disabled:opacity-50 shadow-sm"
+                    className="px-5 py-2.5 bg-rose-500 hover:bg-rose-600 active:scale-98 text-white text-xs font-bold rounded-xl shadow-md shadow-rose-500/20 transition-all cursor-pointer disabled:opacity-50"
                   >
                     {saving ? "Saving..." : "Save Item"}
                   </button>

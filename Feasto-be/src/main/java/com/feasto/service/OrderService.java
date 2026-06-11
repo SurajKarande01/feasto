@@ -61,6 +61,9 @@ public class OrderService {
 	@Autowired
 	private DeliveryPartnerRepository deliveryPartnerRepository;
 
+	@Autowired
+	private com.feasto.repository.MenuItemRepository menuItemRepository;
+
 	// Scoring weights and normalization settings for auto-assignment
 	@Value("${feasto.scoring.proximityWeight:0.7}")
 	private double proximityWeight;
@@ -83,7 +86,50 @@ public class OrderService {
 				.orElseThrow(() -> new ResourceNotFoundException(
 						"Restaurant not found with id: " + orderDTO.getRestaurantId()));
 		Order order = mapper.toOrderEntity(orderDTO, user, restaurant);
+
+		// Recalculate subtotal using menu item prices from the database for security
+		double calculatedSubtotal = 0.0;
+		if (order.getOrderItems() != null) {
+			for (OrderItem item : order.getOrderItems()) {
+				if (item.getMenuItem() == null || item.getMenuItem().getMenuItemId() == null) {
+					throw new ValidationException("Menu item ID must not be null");
+				}
+				com.feasto.entity.MenuItem dbMenuItem = menuItemRepository.findById(item.getMenuItem().getMenuItemId())
+						.orElseThrow(() -> new ResourceNotFoundException(
+								"Menu item not found with id: " + item.getMenuItem().getMenuItemId()));
+				item.setPrice(dbMenuItem.getPrice());
+				calculatedSubtotal += dbMenuItem.getPrice() * item.getQuantity();
+			}
+		}
+
+		// Validate and calculate promo code discount
+		double discountAmount = 0.0;
+		if (orderDTO.getPromoCode() != null && !orderDTO.getPromoCode().trim().isEmpty()) {
+			String code = orderDTO.getPromoCode().trim().toUpperCase();
+			if (code.equals("WELCOME10") || code.equals("FEASTO10")) {
+				discountAmount = calculatedSubtotal * 0.10;
+			} else if (code.equals("GOLD20")) {
+				discountAmount = calculatedSubtotal * 0.20;
+			} else {
+				throw new ValidationException("Invalid promo code: " + code);
+			}
+		}
+
+		// Calculate delivery charge and tip
+		double deliveryCharge = calculatedSubtotal > 0 ? 30.0 : 0.0;
+		double tipAmount = orderDTO.getTipAmount() != null ? orderDTO.getTipAmount() : 0.0;
+		if (tipAmount < 0) {
+			throw new ValidationException("Tip amount cannot be negative");
+		}
+
+		double expectedTotal = calculatedSubtotal + deliveryCharge + tipAmount - discountAmount;
+		expectedTotal = Math.round(expectedTotal * 100.0) / 100.0;
+
+		order.setDiscountAmount(discountAmount);
+		order.setTipAmount(tipAmount);
+		order.setTotalAmount(expectedTotal);
 		order.setOrderStatus(OrderStatus.PLACED);
+
 		Order savedOrder = orderRepository.save(order);
 		for (OrderItem item : order.getOrderItems()) {
 			item.setOrder(savedOrder);
@@ -115,7 +161,10 @@ public class OrderService {
 		Order order = orderRepository.findById(orderId)
 				.orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + orderId));
 		if (order.getDeliveryPartner() != null) {
-			throw new ValidationException("Order already assigned to a delivery partner");
+			DeliveryPartner oldPartner = order.getDeliveryPartner();
+			oldPartner.setAvailable(true);
+			deliveryPartnerRepository.save(oldPartner);
+			order.setDeliveryPartner(null);
 		}
 
 		// 1. Get all available delivery partners
@@ -308,10 +357,14 @@ public class OrderService {
 				.orElseThrow(() -> new ResourceNotFoundException(
 						"Delivery partner not found with id: " + deliveryPartnerId));
 		if (order.getDeliveryPartner() != null) {
-			// Check if delivery partner is available
-			if (!Boolean.TRUE.equals(deliveryPartner.getAvailable())) {
-				throw new ValidationException("Delivery partner is not available");
+			DeliveryPartner oldPartner = order.getDeliveryPartner();
+			if (!oldPartner.getDeliveryPartnerId().equals(deliveryPartnerId)) {
+				oldPartner.setAvailable(true);
+				deliveryPartnerRepository.save(oldPartner);
 			}
+		}
+		if (!Boolean.TRUE.equals(deliveryPartner.getAvailable())) {
+			throw new ValidationException("Selected delivery partner is not available");
 		}
 		order.setDeliveryPartner(deliveryPartner);
 		order.setOrderStatus(OrderStatus.ASSIGNED);

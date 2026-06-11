@@ -19,6 +19,7 @@ const RestaurantLayout = () => {
   const handleLogout = () => {
     try {
       localStorage.removeItem("restaurantProfile");
+      localStorage.removeItem("token");
     } catch {
       // ignore
     }
@@ -32,7 +33,7 @@ const RestaurantLayout = () => {
       <TopNav name={name} onToggleMenu={() => setShowMenu(s => !s)} onLogout={handleLogout} />
       <MobileMenu visible={showMenu} onClose={() => setShowMenu(false)} onLogout={handleLogout} />
 
-      <main className="max-w-7xl mx-auto w-full px-4 mt-6">
+      <main className="max-w-7xl mx-auto w-full px-6 my-8">
         <Outlet />
       </main>
     </div>

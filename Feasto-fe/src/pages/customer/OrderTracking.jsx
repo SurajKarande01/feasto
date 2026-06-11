@@ -12,8 +12,26 @@ L.Icon.Default.mergeOptions({
   shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
 });
 
-const STEPS = ["PLACED","ACCEPTED","PREPARING","ASSIGNED","OUT_FOR_DELIVERY","DELIVERED"];
-const STEP_LABELS = { PLACED:"Order Placed", ACCEPTED:"Restaurant Accepted", PREPARING:"Being Prepared", ASSIGNED:"Rider Assigned", OUT_FOR_DELIVERY:"On the Way", DELIVERED:"Delivered" };
+const STEPS = ["PLACED", "ACCEPTED", "PREPARING", "ASSIGNED", "OUT_FOR_DELIVERY", "DELIVERED"];
+const STEP_LABELS = { 
+  PLACED: "Placed", 
+  ACCEPTED: "Accepted", 
+  PREPARING: "Kitchen", 
+  ASSIGNED: "Rider Assigned", 
+  OUT_FOR_DELIVERY: "On the Way", 
+  DELIVERED: "Delivered" 
+};
+
+const STATUS_COLORS = {
+  PLACED: "bg-indigo-500 text-white shadow-md shadow-indigo-500/20 ring-4 ring-indigo-500/10",
+  ACCEPTED: "bg-amber-500 text-white shadow-md shadow-amber-500/20 ring-4 ring-amber-500/10",
+  PREPARING: "bg-orange-500 text-white shadow-md shadow-orange-500/20 ring-4 ring-orange-500/10",
+  ASSIGNED: "bg-yellow-500 text-white shadow-md shadow-yellow-500/20 ring-4 ring-yellow-500/10",
+  OUT_FOR_DELIVERY: "bg-sky-500 text-white shadow-md shadow-sky-500/20 ring-4 ring-sky-500/10",
+  DELIVERED: "bg-emerald-500 text-white shadow-md shadow-emerald-500/20 ring-4 ring-emerald-500/10",
+  CANCELLED: "bg-rose-500 text-white shadow-md shadow-rose-500/20 ring-4 ring-rose-500/10",
+  REJECTED: "bg-rose-500 text-white shadow-md shadow-rose-500/20 ring-4 ring-rose-500/10",
+};
 
 const CustomerOrderTracking = () => {
   const { id } = useParams();
@@ -23,16 +41,21 @@ const CustomerOrderTracking = () => {
 
   const fetchOrder = useCallback(async () => {
     if (!id) return;
-    setLoading(true); setError("");
     try {
       const res = await apiClient.get(`/orders/${id}`);
       setOrder(res.data);
     } catch (err) {
       setError(err?.response?.data?.error || err.message || "Failed to load order");
-    } finally { setLoading(false); }
+    } finally {
+      setLoading(false);
+    }
   }, [id]);
 
-  useEffect(() => { fetchOrder(); const interval = setInterval(fetchOrder, 10000); return () => clearInterval(interval); }, [fetchOrder]);
+  useEffect(() => {
+    fetchOrder();
+    const interval = setInterval(fetchOrder, 10000);
+    return () => clearInterval(interval);
+  }, [fetchOrder]);
 
   const currentStep = useMemo(() => {
     if (!order) return -1;
@@ -45,108 +68,162 @@ const CustomerOrderTracking = () => {
     return [order.deliveryAddress.latitude, order.deliveryAddress.longitude];
   }, [order]);
 
-  if (loading && !order) return <div className="flex items-center justify-center min-h-[60vh]"><div className="text-gray-500">Loading order tracking…</div></div>;
-  if (error) return <div className="flex items-center justify-center min-h-[60vh]"><div className="text-red-500">{error}</div></div>;
-  if (!order) return <div className="flex items-center justify-center min-h-[60vh]"><div className="text-gray-500">Order not found</div></div>;
+  if (loading && !order) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] bg-white">
+        <div className="w-8 h-8 border-4 border-rose-500 border-t-transparent rounded-full animate-spin"></div>
+        <span className="text-slate-500 font-semibold text-xs mt-3 tracking-wide">Loading tracking dashboard…</span>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4 bg-white">
+        <div className="text-rose-500 text-3xl mb-2">⚠️</div>
+        <h2 className="text-base font-bold text-slate-800">Tracking Error</h2>
+        <p className="text-slate-400 text-xs max-w-xs mt-1">{error}</p>
+        <Link to="/orders" className="mt-4 px-5 py-2 bg-slate-900 text-white rounded-xl text-xs font-bold hover:bg-slate-800 transition cursor-pointer">Back to Orders</Link>
+      </div>
+    );
+  }
+
+  if (!order) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4 bg-white">
+        <div className="text-slate-400 text-3xl mb-2">🔍</div>
+        <h2 className="text-base font-bold text-slate-800">Order Not Found</h2>
+        <p className="text-slate-400 text-xs mt-1">We couldn't locate this order in our system.</p>
+        <Link to="/orders" className="mt-4 px-5 py-2 bg-slate-900 text-white rounded-xl text-xs font-bold hover:bg-slate-800 transition cursor-pointer">Back to Orders</Link>
+      </div>
+    );
+  }
 
   const addr = order.deliveryAddress || {};
   const isCancelled = order.orderStatus === "CANCELLED" || order.orderStatus === "REJECTED";
   const isDelivered = order.orderStatus === "DELIVERED";
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-6">
-      <div className="flex items-center justify-between mb-6">
+    <div className="max-w-5xl mx-auto px-6 py-8 pb-16">
+      
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5 mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Order #{order.orderId}</h1>
-          <p className="text-sm text-gray-500 mt-1">{order.orderTime ? new Date(order.orderTime).toLocaleString() : ""}</p>
+          <div className="flex items-center gap-3 mb-1">
+            <span className="text-[10px] font-extrabold text-rose-500 uppercase tracking-widest block">Live Delivery tracker</span>
+            <span className={`text-[9px] font-extrabold px-2.5 py-0.5 rounded-full border uppercase tracking-wider ${
+              STATUS_COLORS[order.orderStatus] || "bg-slate-500 text-white"
+            }`}>
+              {order.orderStatus?.replace(/_/g, " ")}
+            </span>
+          </div>
+          <h1 className="text-3xl font-black text-slate-900 tracking-tight leading-none">Order #{order.orderId}</h1>
+          <p className="text-slate-400 text-xs mt-1.5">{order.orderTime ? new Date(order.orderTime).toLocaleString() : ""}</p>
         </div>
-        <Link to="/orders" className="px-4 py-2 border rounded-lg text-sm hover:bg-gray-50">← Back to Orders</Link>
+        <Link to="/orders" className="px-4 py-2 border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold text-xs rounded-xl transition-all shadow-sm cursor-pointer self-start sm:self-center shrink-0">
+          ← Back to Orders
+        </Link>
       </div>
 
-      {/* Status Stepper */}
-      {!isCancelled && (
-        <div className="bg-white rounded-2xl shadow-sm border p-6 mb-6">
-          <h2 className="text-sm font-semibold text-gray-500 mb-4 uppercase tracking-wide">Order Progress</h2>
-          <div className="flex items-center justify-between">
-            {STEPS.map((step, idx) => {
-              const isCompleted = idx <= currentStep;
-              const isCurrent = idx === currentStep;
-              return (
-                <div key={step} className="flex-1 flex flex-col items-center relative">
-                  {idx > 0 && <div className={`absolute top-4 right-1/2 w-full h-0.5 -translate-y-1/2 ${idx <= currentStep ? "bg-emerald-500" : "bg-gray-200"}`} style={{ zIndex: 0 }} />}
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold relative z-10 ${isCompleted ? "bg-emerald-500 text-white" : "bg-gray-200 text-gray-500"} ${isCurrent ? "ring-4 ring-emerald-100" : ""}`}>
-                    {isCompleted && idx < currentStep ? "✓" : idx + 1}
-                  </div>
-                  <span className={`text-xs mt-2 text-center ${isCurrent ? "font-bold text-emerald-700" : "text-gray-500"}`}>{STEP_LABELS[step]}</span>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
       {isCancelled && (
-        <div className="bg-red-50 border border-red-200 rounded-2xl p-6 mb-6 text-center">
-          <div className="text-3xl mb-2">❌</div>
-          <h2 className="text-lg font-bold text-red-700">Order {order.orderStatus}</h2>
-          <p className="text-sm text-red-600 mt-1">This order has been {order.orderStatus.toLowerCase()}.</p>
+        <div className="bg-rose-50 border border-rose-100 rounded-3xl p-6 mb-8 text-center">
+          <div className="text-4xl mb-2">❌</div>
+          <h2 className="text-lg font-black text-rose-700">Order {order.orderStatus}</h2>
+          <p className="text-rose-600/80 text-xs mt-1">This order has been {order.orderStatus.toLowerCase()} by the system or merchant.</p>
         </div>
       )}
 
       {isDelivered && (
-        <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-6 mb-6 text-center">
-          <div className="text-3xl mb-2">✅</div>
-          <h2 className="text-lg font-bold text-emerald-700">Order Delivered!</h2>
-          <p className="text-sm text-emerald-600 mt-1">Your order has been delivered successfully. Enjoy your meal!</p>
+        <div className="bg-emerald-50 border border-emerald-100 rounded-3xl p-6 mb-8 text-center">
+          <div className="text-4xl mb-2">🎉</div>
+          <h2 className="text-lg font-black text-emerald-700">Order Delivered!</h2>
+          <p className="text-emerald-600/80 text-xs mt-1">Your meal has arrived. Bon appétit!</p>
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        
         {/* Order Details */}
-        <div className="bg-white rounded-2xl shadow-sm border p-6">
-          <h2 className="text-sm font-semibold text-gray-500 mb-4 uppercase tracking-wide">Order Details</h2>
-          <div className="space-y-3">
-            <div className="flex justify-between text-sm"><span className="text-gray-500">Status</span><span className={`font-bold ${isCancelled ? "text-red-600" : isDelivered ? "text-emerald-600" : "text-blue-600"}`}>{order.orderStatus?.replace(/_/g, " ")}</span></div>
-            <div className="flex justify-between text-sm"><span className="text-gray-500">Total Amount</span><span className="font-bold text-gray-900">₹{Number(order.totalAmount || 0).toFixed(2)}</span></div>
-            <div className="flex justify-between text-sm"><span className="text-gray-500">Restaurant</span><span className="text-gray-700 font-medium">{order.restaurantName || `#${order.restaurantId}`}</span></div>
-            {order.deliveryPartnerId && <div className="flex justify-between text-sm"><span className="text-gray-500">Delivery Partner</span><span className="text-gray-700 font-medium">{order.deliveryPartnerName || `#${order.deliveryPartnerId}`}</span></div>}
-          </div>
-          {Array.isArray(order.orderItems) && order.orderItems.length > 0 && (
-            <div className="mt-4 pt-4 border-t">
-              <h3 className="text-sm font-semibold text-gray-700 mb-2">Items Ordered</h3>
-              <div className="space-y-2">
-                {order.orderItems.map((it, idx) => (
-                  <div key={idx} className="flex justify-between text-sm">
-                    <span className="text-gray-700">{it.menuItemName || `Item #${it.menuItemId}`} × {it.quantity}</span>
-                    <span className="text-gray-900 font-medium">₹{Number((it.price || 0) * (it.quantity || 1)).toFixed(2)}</span>
-                  </div>
-                ))}
+        <div className="bg-white rounded-[32px] border border-slate-100 p-6 shadow-[0_8px_30px_rgba(0,0,0,0.01)] flex flex-col justify-between">
+          <div>
+            <div className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-4">Invoice details</div>
+            <div className="space-y-1">
+              <div className="flex justify-between items-center py-2.5 border-b border-slate-50">
+                <span className="text-xs font-semibold text-slate-400">Order Status</span>
+                <span className={`text-[10px] font-extrabold px-3 py-1 rounded-full border uppercase tracking-wider ${
+                  isCancelled ? "bg-rose-50 text-rose-700 border-rose-100" : isDelivered ? "bg-emerald-50 text-emerald-700 border-emerald-100" : "bg-indigo-50 text-indigo-700 border-indigo-100"
+                }`}>
+                  {order.orderStatus?.replace(/_/g, " ")}
+                </span>
+              </div>
+              <div className="flex justify-between items-center py-2.5 border-b border-slate-50">
+                <span className="text-xs font-semibold text-slate-400">Merchant Name</span>
+                <span className="text-xs font-bold text-slate-800">{order.restaurantName || `#${order.restaurantId}`}</span>
+              </div>
+              {order.deliveryPartnerId && (
+                <div className="flex justify-between items-center py-2.5 border-b border-slate-50">
+                  <span className="text-xs font-semibold text-slate-400">Delivery Partner</span>
+                  <span className="text-xs font-bold text-slate-800">{order.deliveryPartnerName || `#${order.deliveryPartnerId}`}</span>
+                </div>
+              )}
+              {order.discountAmount > 0 && (
+                <div className="flex justify-between items-center py-2.5 border-b border-slate-50 text-emerald-600 font-semibold">
+                  <span className="text-xs">Discount {order.promoCode ? `(${order.promoCode})` : ""}</span>
+                  <span className="text-xs">-₹{Number(order.discountAmount).toFixed(2)}</span>
+                </div>
+              )}
+              {order.tipAmount > 0 && (
+                <div className="flex justify-between items-center py-2.5 border-b border-slate-50">
+                  <span className="text-xs font-semibold text-slate-400">Driver Tip</span>
+                  <span className="text-xs font-bold text-slate-800">₹{Number(order.tipAmount).toFixed(2)}</span>
+                </div>
+              )}
+              <div className="flex justify-between items-center py-2.5">
+                <span className="text-xs font-semibold text-slate-400">Total Charged</span>
+                <span className="text-sm font-black text-slate-900">₹{Number(order.totalAmount || 0).toFixed(2)}</span>
               </div>
             </div>
-          )}
+
+            {Array.isArray(order.orderItems) && order.orderItems.length > 0 && (
+              <div className="mt-6 pt-4 border-t border-slate-100">
+                <div className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-3">Items Ordered</div>
+                <div className="space-y-2.5">
+                  {order.orderItems.map((it, idx) => (
+                    <div key={idx} className="flex justify-between items-center text-xs">
+                      <span className="text-slate-600 font-medium">
+                        {it.menuItemName || `Item #${it.menuItemId}`} 
+                        <span className="text-rose-500 font-extrabold ml-1.5">× {it.quantity}</span>
+                      </span>
+                      <span className="text-slate-900 font-extrabold">₹{Number((it.price || 0) * (it.quantity || 1)).toFixed(2)}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
-        {/* Delivery Address + Map */}
-        <div className="bg-white rounded-2xl shadow-sm border p-6">
-          <h2 className="text-sm font-semibold text-gray-500 mb-4 uppercase tracking-wide">Delivery Location</h2>
-          <div className="space-y-2 mb-4 text-sm">
-            <div><span className="text-gray-500">Street:</span> <span className="text-gray-900">{addr.street || "—"}</span></div>
-            <div><span className="text-gray-500">City:</span> <span className="text-gray-900">{addr.city || "—"}</span></div>
-            <div><span className="text-gray-500">State:</span> <span className="text-gray-900">{addr.state || "—"}</span></div>
-            <div><span className="text-gray-500">Postal Code:</span> <span className="text-gray-900">{addr.postalCode || "—"}</span></div>
+        {/* Delivery Address & Map */}
+        <div className="bg-white rounded-[32px] border border-slate-100 p-6 shadow-[0_8px_30px_rgba(0,0,0,0.01)]">
+          <div className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-4">Delivery destination</div>
+          <div className="space-y-1.5 text-xs text-slate-600 mb-5">
+            <div><span className="font-semibold text-slate-400">Address:</span> <span className="font-bold text-slate-800">{addr.street || "—"}</span></div>
+            <div><span className="font-semibold text-slate-400">City / State:</span> <span className="font-bold text-slate-800">{addr.city || "—"}{addr.state ? `, ${addr.state}` : ""}</span></div>
+            <div><span className="font-semibold text-slate-400">Postal Code:</span> <span className="font-bold text-slate-800">{addr.postalCode || "—"}</span></div>
           </div>
           {deliveryCoords && (
-            <div className="rounded-xl overflow-hidden border" style={{ height: 260 }}>
+            <div className="rounded-2xl overflow-hidden border border-slate-100 mt-4" style={{ height: 220 }}>
               <MapContainer center={deliveryCoords} zoom={15} style={{ height: "100%", width: "100%" }} scrollWheelZoom={false}>
                 <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution='&copy; OpenStreetMap' />
-                <Marker position={deliveryCoords}><Popup>Delivery Location</Popup></Marker>
+                <Marker position={deliveryCoords}><Popup>Delivery Address</Popup></Marker>
               </MapContainer>
             </div>
           )}
         </div>
       </div>
 
-      <div className="mt-6 text-center text-xs text-gray-400">Auto-refreshing every 10 seconds • Last updated: {new Date().toLocaleTimeString()}</div>
+      <div className="mt-8 text-center text-[10px] font-bold text-slate-400 tracking-wider uppercase">
+        Live Refresh active • Last checked: {new Date().toLocaleTimeString()}
+      </div>
     </div>
   );
 };

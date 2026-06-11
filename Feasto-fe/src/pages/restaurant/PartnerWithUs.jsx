@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import "./PartnerWithUs.css";
 import { loginRestaurant, registerRestaurant } from "../../services/api/authService";
 
 const cuisineOptions = [
@@ -133,7 +132,6 @@ export default function PartnerWithUs() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isRegister]);
 
-  // --- API handlers using axios (keeps onClick clean) ---
   const handleLoginSubmit = async () => {
     setApiError("");
     setApiLoading(true);
@@ -197,65 +195,86 @@ export default function PartnerWithUs() {
   };
 
   return (
-    <div className="container mx-auto p-6 partner-hero">
-      <div className="mx-auto partner-card bg-white/95 rounded-lg p-6">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-slate-200/80 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      <div className="w-full max-w-4xl bg-white/90 backdrop-blur-md border border-slate-100 rounded-[32px] shadow-xl overflow-hidden p-8 md:p-12">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           <div>
-            <h1 className="text-3xl font-bold mb-4">Partner with Feasto</h1>
-            <p className="text-gray-700 mb-6">
-              Grow your business by joining our food delivery platform. Reach
-              more customers, get detailed analytics and seamless order
-              management.
+            <span className="text-[10px] font-extrabold uppercase tracking-widest text-rose-500 bg-rose-50 px-3.5 py-2 rounded-full inline-block mb-4">
+              Restaurant Partner
+            </span>
+            <h1 className="text-3xl md:text-4xl font-black text-slate-900 tracking-tight mb-4">
+              Partner with Feasto
+            </h1>
+            <p className="text-slate-500 text-sm mb-8 leading-relaxed max-w-sm">
+              Unlock a new revenue stream. List your menu, receive orders online, manage deliveries seamlessly, and get analytical breakdowns.
             </p>
 
-            <ul className="list-disc pl-5 mb-6 text-gray-700">
-              <li>Access to a large customer base</li>
-              <li>Order management tools and analytics</li>
-              <li>Marketing and promotional support</li>
-            </ul>
-
-            <div className="space-y-4">
-              <div>
-                <h3 className="font-semibold">What we provide</h3>
-                <p className="text-sm text-gray-600">
-                  Quick onboarding, payments, partner support and optional
-                  delivery fulfillment.
-                </p>
+            <div className="space-y-4 mb-8">
+              <div className="flex items-start gap-3">
+                <div className="w-5 h-5 rounded-full bg-rose-50 flex items-center justify-center shrink-0 mt-0.5">
+                  <svg className="w-3.5 h-3.5 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <div>
+                  <h4 className="text-sm font-bold text-slate-800">Massive Customer Reach</h4>
+                  <p className="text-xs text-slate-500 mt-0.5">Get discovered by thousands of hungry customers in your city.</p>
+                </div>
               </div>
-              <div>
-                <h3 className="font-semibold">Who can join</h3>
-                <p className="text-sm text-gray-600">
-                  Existing restaurants, cloud kitchens and food vendors looking
-                  to expand their reach.
-                </p>
+
+              <div className="flex items-start gap-3">
+                <div className="w-5 h-5 rounded-full bg-rose-50 flex items-center justify-center shrink-0 mt-0.5">
+                  <svg className="w-3.5 h-3.5 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <div>
+                  <h4 className="text-sm font-bold text-slate-800">Advanced Analytics Dashboard</h4>
+                  <p className="text-xs text-slate-500 mt-0.5">Track daily sales, order history, and dish demand metrics easily.</p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3">
+                <div className="w-5 h-5 rounded-full bg-rose-50 flex items-center justify-center shrink-0 mt-0.5">
+                  <svg className="w-3.5 h-3.5 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <div>
+                  <h4 className="text-sm font-bold text-slate-800">Reliable Logistics Integration</h4>
+                  <p className="text-xs text-slate-500 mt-0.5">Leverage our professional rider network for quick deliveries.</p>
+                </div>
               </div>
             </div>
 
-            {/* Image Preview Here */}
-            <div className="flex justify-center items-center">
-              {imageFile && (
+            {imagePreviewUrl && (
+              <div className="p-4 bg-slate-50 border border-slate-100 rounded-2xl flex items-center gap-4 max-w-sm">
                 <img
-                  src={URL.createObjectURL(imageFile)}
-                  alt="Restaurant"
-                  className="w-48 h-48 object-cover rounded"
+                  src={imagePreviewUrl}
+                  alt="Restaurant Preview"
+                  className="w-16 h-16 object-cover rounded-xl shadow-inner shrink-0"
                 />
-              )}
-            </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-bold text-slate-700 truncate">{registerForm.name || "Restaurant Name"}</p>
+                  <p className="text-[10px] font-medium text-slate-400 truncate">{registerForm.cuisineType || "Cuisine"}</p>
+                </div>
+              </div>
+            )}
           </div>
 
           <div>
-            <div className="bg-white shadow rounded-lg p-6">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-semibold">Get in touch</h2>
-                <div className="flex gap-2">
+            <div className="bg-slate-50/50 border border-slate-100 rounded-3xl p-6 md:p-8">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-lg font-bold text-slate-900">Get in touch</h2>
+                <div className="flex bg-slate-200/50 p-1 rounded-xl">
                   <button
                     type="button"
                     onClick={() => {
                       setApiError("");
                       setIsRegister(false);
                     }}
-                    className={`px-3 py-2 rounded ${
-                      !isRegister ? "bg-blue-600 text-white" : "bg-gray-200"
+                    className={`px-4 py-2 text-xs font-bold rounded-lg transition-all duration-200 cursor-pointer ${
+                      !isRegister ? "bg-slate-900 text-white shadow-sm" : "text-slate-600 hover:text-slate-900"
                     }`}
                   >
                     Login
@@ -266,8 +285,8 @@ export default function PartnerWithUs() {
                       setApiError("");
                       setIsRegister(true);
                     }}
-                    className={`px-3 py-2 rounded ${
-                      isRegister ? "bg-blue-600 text-white" : "bg-gray-200"
+                    className={`px-4 py-2 text-xs font-bold rounded-lg transition-all duration-200 cursor-pointer ${
+                      isRegister ? "bg-slate-900 text-white shadow-sm" : "text-slate-600 hover:text-slate-900"
                     }`}
                   >
                     Register
@@ -275,206 +294,225 @@ export default function PartnerWithUs() {
                 </div>
               </div>
 
-              {/* Login */}
-              <div style={{ display: isRegister ? "none" : "block" }}>
-                <div className="grid grid-cols-1 gap-3 mb-3">
-                  <input
-                    name="email"
-                    value={loginForm.email}
-                    onChange={handleLoginChange}
-                    placeholder="Email"
-                    className="w-full p-3 rounded"
-                  />
-                  <input
-                    name="password"
-                    value={loginForm.password}
-                    onChange={handleLoginChange}
-                    placeholder="Password"
-                    type="password"
-                    className="w-full p-3 rounded"
-                  />
-                </div>
-
-                {apiError && (
-                  <div className="text-sm text-red-500 mb-2">{apiError}</div>
-                )}
-
-                <button
-                  onClick={handleLoginSubmit}
-                  disabled={apiLoading}
-                  className="w-full bg-green-600 text-white p-3 rounded"
+              {/* Login Form */}
+              {!isRegister ? (
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    handleLoginSubmit();
+                  }}
+                  className="space-y-4"
                 >
-                  {apiLoading ? "Logging in…" : "Login"}
-                </button>
-              </div>
-
-              {/* Register */}
-              <div style={{ display: isRegister ? "block" : "none" }}>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
-                  <input
-                    name="email"
-                    value={registerForm.email}
-                    onChange={handleRegisterChange}
-                    placeholder="Email"
-                    className="w-full p-3 rounded"
-                  />
-                  <input
-                    name="password"
-                    value={registerForm.password}
-                    onChange={handleRegisterChange}
-                    placeholder="Password"
-                    type="password"
-                    className="w-full p-3 rounded"
-                  />
-                  <input
-                    name="name"
-                    value={registerForm.name}
-                    onChange={handleRegisterChange}
-                    placeholder="Restaurant name"
-                    className="w-full p-3 rounded"
-                  />
-                  <input
-                    name="phoneNumber"
-                    value={registerForm.phoneNumber}
-                    onChange={handleRegisterChange}
-                    placeholder="Phone number"
-                    className="w-full p-3 rounded"
-                  />
-
                   <div>
                     <input
-                      list="cuisines"
-                      name="cuisineType"
-                      value={registerForm.cuisineType}
-                      onChange={handleRegisterChange}
-                      placeholder="Cuisine (start typing or pick)"
-                      className="w-full p-3 rounded"
+                      name="email"
+                      value={loginForm.email}
+                      onChange={handleLoginChange}
+                      placeholder="Email Address"
+                      type="email"
+                      required
+                      className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-rose-500 focus:ring-4 focus:ring-rose-500/10 transition-all shadow-sm"
                     />
-                    <datalist id="cuisines">
-                      {cuisineOptions.map((c) => (
-                        <option key={c} value={c} />
-                      ))}
-                    </datalist>
                   </div>
-
-                  <input
-                    name="postalCode"
-                    value={registerForm.postalCode}
-                    onChange={handleRegisterChange}
-                    placeholder="Postal code"
-                    className="w-full p-3 rounded"
-                  />
-                </div>
-
-                <div className="mt-4 grid grid-cols-1 gap-3">
-                  <textarea
-                    name="description"
-                    value={registerForm.description}
-                    onChange={handleRegisterChange}
-                    placeholder="Short description"
-                    rows={3}
-                    className="w-full p-3 rounded"
-                  />
-                </div>
-
-                <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <input
-                    name="street"
-                    value={registerForm.street}
-                    onChange={handleRegisterChange}
-                    placeholder="Street"
-                    className="w-full p-3 rounded"
-                  />
-                  <input
-                    name="city"
-                    value={registerForm.city}
-                    onChange={handleRegisterChange}
-                    placeholder="City"
-                    className="w-full p-3 rounded"
-                  />
-                  <input
-                    name="state"
-                    value={registerForm.state}
-                    onChange={handleRegisterChange}
-                    placeholder="State"
-                    className="w-full p-3 rounded"
-                  />
-                  <input
-                    name="country"
-                    value={registerForm.country}
-                    onChange={handleRegisterChange}
-                    placeholder="Country"
-                    className="w-full p-3 rounded"
-                  />
-                </div>
-
-                <div className="mt-4 flex gap-3 items-center">
-                  {loadingLocation ? (
-                    <div className="text-sm text-gray-600">
-                      Detecting location...
-                    </div>
-                  ) : locError ? (
-                    <div className="text-sm text-red-500">{locError}</div>
-                  ) : (
-                    <div className="text-sm text-gray-600">
-                      Location detected
+                  <div>
+                    <input
+                      name="password"
+                      value={loginForm.password}
+                      onChange={handleLoginChange}
+                      placeholder="Password"
+                      type="password"
+                      required
+                      className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-rose-500 focus:ring-4 focus:ring-rose-500/10 transition-all shadow-sm"
+                    />
+                  </div>
+                  {apiError && (
+                    <div className="text-xs font-semibold text-rose-500 bg-rose-50 p-3 rounded-xl border border-rose-100">
+                      {apiError}
                     </div>
                   )}
-                </div>
-
-                <div className="mt-4 text-sm text-gray-600">
-                  Latitude: {registerForm.latitude || "—"} &nbsp; Longitude:{" "}
-                  {registerForm.longitude || "—"}
-                </div>
-
-                <div className="mt-3">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) =>
-                      setImageFile(
-                        e.target.files && e.target.files[0]
-                          ? e.target.files[0]
-                          : null
-                      )
-                    }
-                    className="w-full p-2 rounded border"
-                  />
-                </div>
-                {imagePreviewUrl && (
-                  <div className="mt-3 flex items-center gap-3">
-                    <img
-                      src={imagePreviewUrl}
-                      alt="Preview"
-                      className="w-24 h-24 object-cover rounded"
-                    />
-                    <div className="text-sm text-gray-700 line-clamp-2">
-                      {imageFile?.name}
-                    </div>
-                    <button
-                      type="button"
-                      className="ml-auto text-xs px-2 py-1 rounded border"
-                      onClick={() => setImageFile(null)}
-                    >
-                      Clear
-                    </button>
-                  </div>
-                )}
-
-                {apiError && (
-                  <div className="text-sm text-red-500 mb-2">{apiError}</div>
-                )}
-
-                <div className="mt-2">
                   <button
-                    onClick={handleRegisterSubmit}
+                    type="submit"
                     disabled={apiLoading}
-                    className="w-full bg-blue-600 text-white p-3 rounded"
+                    className="w-full bg-rose-500 hover:bg-rose-600 active:scale-[0.98] text-white font-bold text-sm py-3.5 rounded-xl transition-all duration-200 shadow-md shadow-rose-500/20 cursor-pointer"
                   >
-                    {apiLoading ? "Registering…" : "Register"}
+                    {apiLoading ? "Signing In…" : "Sign In"}
                   </button>
-                </div>
-              </div>
+                </form>
+              ) : (
+                /* Register Form */
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    handleRegisterSubmit();
+                  }}
+                  className="space-y-4 max-h-[50vh] overflow-y-auto pr-1"
+                >
+                  <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Merchant Details</div>
+                  <div className="space-y-3">
+                    <input
+                      name="email"
+                      value={registerForm.email}
+                      onChange={handleRegisterChange}
+                      type="email"
+                      required
+                      placeholder="Email Address"
+                      className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-rose-500 focus:ring-4 focus:ring-rose-500/10 transition-all shadow-sm"
+                    />
+                    <input
+                      name="password"
+                      value={registerForm.password}
+                      onChange={handleRegisterChange}
+                      placeholder="Password"
+                      type="password"
+                      required
+                      className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-rose-500 focus:ring-4 focus:ring-rose-500/10 transition-all shadow-sm"
+                    />
+                    <input
+                      name="name"
+                      value={registerForm.name}
+                      onChange={handleRegisterChange}
+                      required
+                      placeholder="Restaurant Name"
+                      className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-rose-500 focus:ring-4 focus:ring-rose-500/10 transition-all shadow-sm"
+                    />
+                    <input
+                      name="phoneNumber"
+                      value={registerForm.phoneNumber}
+                      onChange={handleRegisterChange}
+                      required
+                      placeholder="Phone Number"
+                      className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-rose-500 focus:ring-4 focus:ring-rose-500/10 transition-all shadow-sm"
+                    />
+                    <div>
+                      <input
+                        list="cuisines"
+                        name="cuisineType"
+                        value={registerForm.cuisineType}
+                        onChange={handleRegisterChange}
+                        required
+                        placeholder="Cuisine (start typing or select)"
+                        className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-rose-500 focus:ring-4 focus:ring-rose-500/10 transition-all shadow-sm"
+                      />
+                      <datalist id="cuisines">
+                        {cuisineOptions.map((c) => (
+                          <option key={c} value={c} />
+                        ))}
+                      </datalist>
+                    </div>
+                    <input
+                      name="postalCode"
+                      value={registerForm.postalCode}
+                      onChange={handleRegisterChange}
+                      required
+                      placeholder="Postal Code"
+                      className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-rose-500 focus:ring-4 focus:ring-rose-500/10 transition-all shadow-sm"
+                    />
+                  </div>
+
+                  <div className="space-y-3">
+                    <textarea
+                      name="description"
+                      value={registerForm.description}
+                      onChange={handleRegisterChange}
+                      placeholder="Short business description..."
+                      rows={2}
+                      className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-rose-500 focus:ring-4 focus:ring-rose-500/10 transition-all shadow-sm shadow-none"
+                    />
+                  </div>
+
+                  <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mt-4 mb-2">Location Address</div>
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-2 gap-3">
+                      <input
+                        name="street"
+                        value={registerForm.street}
+                        onChange={handleRegisterChange}
+                        required
+                        placeholder="Street / Locality"
+                        className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-rose-500 focus:ring-4 focus:ring-rose-500/10 transition-all shadow-sm"
+                      />
+                      <input
+                        name="city"
+                        value={registerForm.city}
+                        onChange={handleRegisterChange}
+                        required
+                        placeholder="City"
+                        className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-rose-500 focus:ring-4 focus:ring-rose-500/10 transition-all shadow-sm"
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <input
+                        name="state"
+                        value={registerForm.state}
+                        onChange={handleRegisterChange}
+                        required
+                        placeholder="State"
+                        className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-rose-500 focus:ring-4 focus:ring-rose-500/10 transition-all shadow-sm"
+                      />
+                      <input
+                        name="country"
+                        value={registerForm.country}
+                        onChange={handleRegisterChange}
+                        required
+                        placeholder="Country"
+                        className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-rose-500 focus:ring-4 focus:ring-rose-500/10 transition-all shadow-sm"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="bg-slate-100/80 p-3.5 rounded-xl text-xs text-slate-600 space-y-2">
+                    <div className="flex justify-between items-center font-semibold">
+                      <span>Kitchen Coordinates</span>
+                      <button
+                        type="button"
+                        onClick={handleGetLocation}
+                        className="px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-[10px] font-bold text-slate-700 hover:bg-slate-50 transition shadow-sm cursor-pointer"
+                      >
+                        Locate Kitchen
+                      </button>
+                    </div>
+                    {loadingLocation ? (
+                      <p className="text-[11px] text-rose-500 animate-pulse">Detecting GPS coordinates...</p>
+                    ) : locError ? (
+                      <p className="text-[11px] text-rose-500">{locError}</p>
+                    ) : (
+                      <p className="text-[11px] text-slate-500">
+                        GPS Coordinates: {registerForm.latitude && registerForm.longitude ? `${registerForm.latitude}, ${registerForm.longitude}` : "Not Set"}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">Restaurant Image</label>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) =>
+                        setImageFile(
+                          e.target.files && e.target.files[0]
+                            ? e.target.files[0]
+                            : null
+                        )
+                      }
+                      className="w-full p-2.5 bg-white border border-slate-200 rounded-xl text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-[10px] file:font-bold file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200 file:cursor-pointer"
+                    />
+                  </div>
+
+                  {apiError && (
+                    <div className="text-xs font-semibold text-rose-500 bg-rose-50 p-3 rounded-xl border border-rose-100">
+                      {apiError}
+                    </div>
+                  )}
+
+                  <button
+                    type="submit"
+                    disabled={apiLoading}
+                    className="w-full bg-rose-500 hover:bg-rose-600 active:scale-[0.98] text-white font-bold text-sm py-3.5 rounded-xl transition-all duration-200 shadow-md shadow-rose-500/20 cursor-pointer"
+                  >
+                    {apiLoading ? "Registering Partner…" : "Register Partner"}
+                  </button>
+                </form>
+              )}
             </div>
           </div>
         </div>

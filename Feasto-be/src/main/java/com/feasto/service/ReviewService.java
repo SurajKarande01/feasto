@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import com.feasto.dto.ReviewDTO;
 import com.feasto.entity.DeliveryPartner;
+import com.feasto.entity.Restaurant;
 import com.feasto.entity.Review;
 import com.feasto.exception.ResourceNotFoundException;
 import com.feasto.mapper.CustomMapper;
@@ -74,6 +75,20 @@ public class ReviewService {
                                         .average().orElse(0.0);
                         deliveryPartner.setAverageRating(avg);
                         deliveryPartnerRepository.save(deliveryPartner);
+                }
+
+                // Update average rating for restaurant if applicable
+                if (dto.getRestaurantId() != null) {
+                        Restaurant restaurant = restaurantRepository.findById(dto.getRestaurantId()).orElse(null);
+                        if (restaurant != null) {
+                                List<Review> restaurantReviews = reviewRepository
+                                                .findByRestaurant_RestaurantId(dto.getRestaurantId());
+                                double avg = restaurantReviews.stream()
+                                                .mapToInt(r -> r.getRating() != null ? r.getRating() : 0)
+                                                .average().orElse(0.0);
+                                restaurant.setRating(avg);
+                                restaurantRepository.save(restaurant);
+                        }
                 }
                 return mapper.toReviewDTO(saved);
         }

@@ -12,9 +12,9 @@ const getPartnerId = () => {
 };
 
 const STATUS_COLORS = {
-  ASSIGNED: "bg-yellow-50 text-yellow-700 border-yellow-200",
-  OUT_FOR_DELIVERY: "bg-sky-50 text-sky-700 border-sky-200",
-  DELIVERED: "bg-emerald-50 text-emerald-700 border-emerald-200",
+  ASSIGNED: "bg-yellow-50 text-yellow-700 border-yellow-100",
+  OUT_FOR_DELIVERY: "bg-sky-50 text-sky-700 border-sky-100",
+  DELIVERED: "bg-emerald-50 text-emerald-700 border-emerald-100",
 };
 
 const AssignedOrders = () => {
@@ -56,62 +56,99 @@ const AssignedOrders = () => {
   const tabs = ["ALL", "ASSIGNED", "OUT_FOR_DELIVERY", "DELIVERED"];
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-6">
-      <div className="flex items-center justify-between mb-6">
+    <div className="max-w-5xl mx-auto px-6 py-8 pb-16">
+      
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5 mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Assigned Orders</h1>
-          <p className="text-gray-500 text-sm mt-1">View and manage your delivery assignments</p>
+          <span className="text-[10px] font-extrabold text-rose-500 uppercase tracking-widest block mb-0.5">Assigned Dashboard</span>
+          <h1 className="text-3xl font-black text-slate-900 tracking-tight leading-none">Active Deliveries</h1>
+          <p className="text-slate-500 text-xs mt-1.5">View and manage your delivery assignments</p>
         </div>
-        <button onClick={fetchOrders} className="px-4 py-2 border rounded-lg text-sm hover:bg-gray-50">Refresh</button>
+        <button onClick={fetchOrders} className="px-4 py-2 border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold text-xs rounded-xl transition-all shadow-sm cursor-pointer self-start sm:self-center shrink-0">
+          Refresh List
+        </button>
       </div>
 
-      <div className="flex gap-2 overflow-x-auto pb-2 mb-4">
+      <div className="flex gap-2 overflow-x-auto pb-3 mb-6 scrollbar-hide">
         {tabs.map(t => (
-          <button key={t} onClick={() => setFilter(t)} className={`whitespace-nowrap px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors ${filter === t ? "bg-gray-900 text-white border-gray-900" : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"}`}>
-            {t === "ALL" ? `All (${orders.length})` : `${t.replace(/_/g, " ")} (${orders.filter(o => o.orderStatus === t).length})`}
+          <button 
+            key={t} 
+            onClick={() => setFilter(t)} 
+            className={`whitespace-nowrap px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 border cursor-pointer ${
+              filter === t 
+                ? "bg-slate-950 text-white border-slate-950 shadow-sm" 
+                : "bg-white text-slate-600 border-slate-200/80 hover:bg-slate-50 hover:text-slate-950"
+            }`}
+          >
+            {t === "ALL" ? `All Orders (${orders.length})` : `${t.replace(/_/g, " ")} (${orders.filter(o => o.orderStatus === t).length})`}
           </button>
         ))}
       </div>
 
-      {loading && <div className="text-center py-16 text-gray-500">Loading orders…</div>}
-      {error && <div className="text-center py-16 text-red-500">{error}</div>}
+      {loading && (
+        <div className="flex flex-col items-center justify-center py-20 bg-slate-50/50 rounded-3xl border border-slate-100">
+          <div className="w-8 h-8 border-4 border-rose-500 border-t-transparent rounded-full animate-spin"></div>
+          <span className="text-slate-500 font-semibold text-xs mt-3 tracking-wide">Loading assignments…</span>
+        </div>
+      )}
+      {error && <div className="text-center text-rose-500 bg-rose-50 border border-rose-100 rounded-2xl py-4 font-semibold text-sm">{error}</div>}
+      
       {!loading && !error && filtered.length === 0 && (
-        <div className="text-center py-16 bg-white rounded-2xl border">
-          <div className="text-5xl mb-3">📦</div>
-          <h3 className="text-lg font-semibold text-gray-700">No orders found</h3>
-          <p className="text-gray-500 text-sm mt-1">No {filter === "ALL" ? "" : filter.replace(/_/g, " ").toLowerCase()} orders assigned to you.</p>
+        <div className="text-center py-20 bg-slate-50/50 rounded-3xl border border-slate-100">
+          <div className="text-5xl mb-4">📦</div>
+          <h3 className="text-base font-bold text-slate-700">No orders found</h3>
+          <p className="text-slate-400 text-xs mt-1">No {filter === "ALL" ? "" : filter.replace(/_/g, " ").toLowerCase()} orders assigned to you.</p>
         </div>
       )}
 
       {!loading && !error && filtered.length > 0 && (
-        <div className="space-y-4">
+        <div className="space-y-6">
           {filtered.map(o => {
             const itemsCount = Array.isArray(o.orderItems) ? o.orderItems.reduce((a, it) => a + (it.quantity || 0), 0) : 0;
             const addr = o.deliveryAddress || {};
             const addressStr = [addr.street, addr.city].filter(Boolean).join(", ") || "—";
             const dateStr = o.orderTime ? new Date(o.orderTime).toLocaleString() : "—";
             return (
-              <div key={o.orderId} className="bg-white rounded-xl border shadow-sm p-5 hover:shadow-md transition-shadow">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3">
-                  <div className="flex items-center gap-3 flex-wrap">
-                    <span className="font-bold text-gray-900">Order #{o.orderId}</span>
-                    <span className={`text-xs font-semibold px-2.5 py-1 rounded-full border ${STATUS_COLORS[o.orderStatus] || "bg-gray-50 text-gray-700 border-gray-200"}`}>{o.orderStatus?.replace(/_/g, " ")}</span>
+              <div key={o.orderId} className="bg-white rounded-[32px] border border-slate-100 p-6 shadow-[0_8px_30px_rgba(0,0,0,0.01)] hover:shadow-lg transition-all duration-300">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-3 border-b border-slate-50">
+                  <div className="flex items-center gap-3.5 flex-wrap">
+                    <span className="font-extrabold text-slate-900 text-base">Order #{o.orderId}</span>
+                    <span className={`text-[10px] font-extrabold px-3 py-1 rounded-full border uppercase tracking-wider ${STATUS_COLORS[o.orderStatus] || "bg-slate-50 text-slate-700 border-slate-200"}`}>
+                      {o.orderStatus?.replace(/_/g, " ")}
+                    </span>
                   </div>
-                  <div className="text-sm text-gray-500">{dateStr}</div>
+                  <div className="text-xs text-slate-400 font-medium">{dateStr}</div>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm mb-3">
-                  <div><span className="text-gray-500">Items:</span> <span className="font-medium">{itemsCount}</span></div>
-                  <div><span className="text-gray-500">Amount:</span> <span className="font-bold">₹{Number(o.totalAmount || 0).toFixed(2)}</span></div>
-                  <div><span className="text-gray-500">Deliver to:</span> <span>{addressStr}</span></div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 py-4 text-xs font-semibold text-slate-500">
+                  <div>
+                    <span className="text-slate-400 block text-[9px] uppercase tracking-wider mb-1">Items Count</span>
+                    <span className="text-slate-800 text-sm font-bold">{itemsCount} qty</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 block text-[9px] uppercase tracking-wider mb-1">Total Payout</span>
+                    <span className="text-slate-800 text-sm font-black text-rose-500">₹{Number(o.totalAmount || 0).toFixed(2)}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 block text-[9px] uppercase tracking-wider mb-1">Delivery Address</span>
+                    <span className="text-slate-800 text-xs font-bold leading-normal truncate block">{addressStr}</span>
+                  </div>
                 </div>
-                <div className="flex flex-wrap gap-2">
+
+                <div className="flex flex-wrap gap-2 pt-2 border-t border-slate-50/50">
                   {o.orderStatus === "ASSIGNED" && (
-                    <button onClick={() => handleStatusUpdate(o.orderId, "OUT_FOR_DELIVERY")} className="px-4 py-2 bg-indigo-600 text-white text-sm rounded-lg font-medium hover:bg-indigo-700">
+                    <button 
+                      onClick={() => handleStatusUpdate(o.orderId, "OUT_FOR_DELIVERY")} 
+                      className="px-5 py-2.5 bg-rose-500 hover:bg-rose-600 active:scale-98 text-white text-xs font-bold rounded-xl transition-all duration-200 shadow-md shadow-rose-500/20 cursor-pointer"
+                    >
                       Start Delivery
                     </button>
                   )}
                   {o.orderStatus === "OUT_FOR_DELIVERY" && (
-                    <button onClick={() => handleStatusUpdate(o.orderId, "DELIVERED")} className="px-4 py-2 bg-emerald-600 text-white text-sm rounded-lg font-medium hover:bg-emerald-700">
+                    <button 
+                      onClick={() => handleStatusUpdate(o.orderId, "DELIVERED")} 
+                      className="px-5 py-2.5 bg-emerald-500 hover:bg-emerald-600 active:scale-98 text-white text-xs font-bold rounded-xl transition-all duration-200 shadow-md shadow-emerald-500/20 cursor-pointer"
+                    >
                       Mark Delivered
                     </button>
                   )}

@@ -23,6 +23,9 @@ public class OrderDTO {
     private String deliveryPartnerName;
     private OrderStatus orderStatus;
     private Double totalAmount;
+    private Double discountAmount;
+    private String promoCode;
+    private Double tipAmount;
     private Address deliveryAddress;
     private LocalDateTime orderTime;
     private LocalDateTime deliveryTime;
@@ -62,6 +65,24 @@ public class OrderDTO {
 	}
 	public void setTotalAmount(Double totalAmount) {
 		this.totalAmount = totalAmount;
+	}
+	public Double getDiscountAmount() {
+		return discountAmount;
+	}
+	public void setDiscountAmount(Double discountAmount) {
+		this.discountAmount = discountAmount;
+	}
+	public String getPromoCode() {
+		return promoCode;
+	}
+	public void setPromoCode(String promoCode) {
+		this.promoCode = promoCode;
+	}
+	public Double getTipAmount() {
+		return tipAmount;
+	}
+	public void setTipAmount(Double tipAmount) {
+		this.tipAmount = tipAmount;
 	}
 	public Address getDeliveryAddress() {
 		return deliveryAddress;

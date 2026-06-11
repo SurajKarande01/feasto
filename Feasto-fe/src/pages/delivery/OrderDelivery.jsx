@@ -29,7 +29,9 @@ const OrderDelivery = () => {
       setOrder(res.data);
     } catch (err) {
       setError(err?.response?.data?.error || err.message || "Failed to load order");
-    } finally { setLoading(false); }
+    } finally {
+      setLoading(false);
+    }
   }, [id]);
 
   useEffect(() => { fetchOrder(); }, [fetchOrder]);
@@ -87,80 +89,148 @@ const OrderDelivery = () => {
     return { lat: order.deliveryAddress.latitude, lng: order.deliveryAddress.longitude };
   }, [order]);
 
-  if (loading) return <div className="flex items-center justify-center min-h-[60vh]"><div className="text-gray-500">Loading order details…</div></div>;
-  if (error) return <div className="flex items-center justify-center min-h-[60vh]"><div className="text-red-500">{error}</div></div>;
-  if (!order) return <div className="flex items-center justify-center min-h-[60vh]"><div className="text-gray-500">Order not found</div></div>;
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] bg-white">
+        <div className="w-8 h-8 border-4 border-rose-500 border-t-transparent rounded-full animate-spin"></div>
+        <span className="text-slate-500 font-semibold text-xs mt-3 tracking-wide">Loading assignment details…</span>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4 bg-white">
+        <div className="text-rose-500 text-3xl mb-2">⚠️</div>
+        <h2 className="text-base font-bold text-slate-800">Error Loading Delivery</h2>
+        <p className="text-slate-400 text-xs max-w-xs mt-1">{error}</p>
+        <Link to="/delivery-dashboard" className="mt-4 px-5 py-2 bg-slate-900 text-white rounded-xl text-xs font-bold hover:bg-slate-800 transition cursor-pointer">Back to Dashboard</Link>
+      </div>
+    );
+  }
+
+  if (!order) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4 bg-white">
+        <div className="text-slate-400 text-3xl mb-2">🔍</div>
+        <h2 className="text-base font-bold text-slate-800">Delivery Not Found</h2>
+        <p className="text-slate-400 text-xs mt-1">We couldn't locate this active delivery in our system.</p>
+        <Link to="/delivery-dashboard" className="mt-4 px-5 py-2 bg-slate-900 text-white rounded-xl text-xs font-bold hover:bg-slate-800 transition cursor-pointer">Back to Dashboard</Link>
+      </div>
+    );
+  }
 
   const addr = order.deliveryAddress || {};
   const itemsCount = Array.isArray(order.orderItems) ? order.orderItems.reduce((a, it) => a + (it.quantity || 0), 0) : 0;
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-6">
-      <div className="flex items-center justify-between mb-6">
+    <div className="max-w-5xl mx-auto px-6 py-8 pb-16">
+      
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5 mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Delivery #{order.orderId}</h1>
-          <p className="text-sm text-gray-500 mt-1">Status: <span className="font-semibold">{order.orderStatus?.replace(/_/g, " ")}</span></p>
+          <span className="text-[10px] font-extrabold text-rose-500 uppercase tracking-widest block mb-0.5">Delivery assignment</span>
+          <h1 className="text-3xl font-black text-slate-900 tracking-tight leading-none">Delivery #{order.orderId}</h1>
+          <p className="text-slate-500 text-xs mt-1.5">Current Status: <span className="font-extrabold uppercase tracking-wide text-rose-500">{order.orderStatus?.replace(/_/g, " ")}</span></p>
         </div>
-        <Link to="/delivery-dashboard" className="px-4 py-2 border rounded-lg text-sm hover:bg-gray-50">← Dashboard</Link>
+        <Link to="/delivery-dashboard" className="px-4 py-2 border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold text-xs rounded-xl transition-all shadow-sm cursor-pointer self-start sm:self-center shrink-0">
+          ← Dashboard
+        </Link>
       </div>
 
       {/* Map */}
       {destination && order.orderStatus === "OUT_FOR_DELIVERY" && (
-        <div className="bg-white rounded-2xl shadow-sm border overflow-hidden mb-6">
+        <div className="bg-white rounded-[32px] border border-slate-100 overflow-hidden mb-8 shadow-[0_8px_30px_rgba(0,0,0,0.015)]">
           <DeliveryMap origin={riderPosition} destination={destination} height={350} />
         </div>
       )}
 
       {order.orderStatus === "DELIVERED" && (
-        <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-6 mb-6 text-center">
-          <div className="text-3xl mb-2">✅</div>
-          <h2 className="text-lg font-bold text-emerald-700">Delivery Completed!</h2>
+        <div className="bg-emerald-50 border border-emerald-100 rounded-[32px] p-6 mb-8 text-center">
+          <div className="text-4xl mb-2">🎉</div>
+          <h2 className="text-lg font-black text-emerald-700">Delivery Completed!</h2>
+          <p className="text-emerald-600/80 text-xs mt-1">Excellent job! This delivery has been successfully finalized.</p>
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-2xl shadow-sm border p-6">
-          <h2 className="text-sm font-semibold text-gray-500 mb-4 uppercase tracking-wide">Order Summary</h2>
-          <div className="space-y-3 text-sm">
-            <div className="flex justify-between"><span className="text-gray-500">Order ID</span><span className="font-bold">#{order.orderId}</span></div>
-            <div className="flex justify-between"><span className="text-gray-500">Items</span><span className="font-medium">{itemsCount} item(s)</span></div>
-            <div className="flex justify-between"><span className="text-gray-500">Total</span><span className="font-bold">₹{Number(order.totalAmount || 0).toFixed(2)}</span></div>
-            <div className="flex justify-between"><span className="text-gray-500">Customer</span><span>User #{order.userId}</span></div>
-            <div className="flex justify-between"><span className="text-gray-500">Restaurant</span><span className="font-medium">{order.restaurantName || `#${order.restaurantId}`}</span></div>
-          </div>
-          {Array.isArray(order.orderItems) && order.orderItems.length > 0 && (
-            <div className="mt-4 pt-4 border-t space-y-2">
-              {order.orderItems.map((it, idx) => (
-                <div key={idx} className="flex justify-between text-sm">
-                  <span>{it.menuItemName || `Item #${it.menuItemId}`} × {it.quantity}</span>
-                  <span className="font-medium">₹{Number((it.price || 0) * (it.quantity || 1)).toFixed(2)}</span>
-                </div>
-              ))}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        
+        {/* Order Summary */}
+        <div className="bg-white rounded-[32px] border border-slate-100 p-6 shadow-[0_8px_30px_rgba(0,0,0,0.01)] flex flex-col justify-between">
+          <div>
+            <h2 className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-4">Order Summary</h2>
+            <div className="space-y-1 text-xs">
+              <div className="flex justify-between items-center py-2.5 border-b border-slate-50">
+                <span className="font-semibold text-slate-400">Order ID</span>
+                <span className="font-bold text-slate-800">#{order.orderId}</span>
+              </div>
+              <div className="flex justify-between items-center py-2.5 border-b border-slate-50">
+                <span className="font-semibold text-slate-400">Total Items</span>
+                <span className="font-bold text-slate-800">{itemsCount} qty</span>
+              </div>
+              <div className="flex justify-between items-center py-2.5 border-b border-slate-50">
+                <span className="font-semibold text-slate-400">Earnings Payout</span>
+                <span className="font-black text-rose-500">₹{Number(order.totalAmount || 0).toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between items-center py-2.5 border-b border-slate-50">
+                <span className="font-semibold text-slate-400">Customer</span>
+                <span className="font-bold text-slate-800">User #{order.userId}</span>
+              </div>
+              <div className="flex justify-between items-center py-2.5">
+                <span className="font-semibold text-slate-400">Restaurant</span>
+                <span className="font-bold text-slate-800">{order.restaurantName || `#${order.restaurantId}`}</span>
+              </div>
             </div>
-          )}
+
+            {Array.isArray(order.orderItems) && order.orderItems.length > 0 && (
+              <div className="mt-6 pt-4 border-t border-slate-100">
+                <h3 className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-3">Items list</h3>
+                <div className="space-y-2.5">
+                  {order.orderItems.map((it, idx) => (
+                    <div key={idx} className="flex justify-between items-center text-xs">
+                      <span className="text-slate-600 font-medium">
+                        {it.menuItemName || `Item #${it.menuItemId}`} 
+                        <span className="text-rose-500 font-extrabold ml-1.5">× {it.quantity}</span>
+                      </span>
+                      <span className="text-slate-900 font-extrabold">₹{Number((it.price || 0) * (it.quantity || 1)).toFixed(2)}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-sm border p-6">
-          <h2 className="text-sm font-semibold text-gray-500 mb-4 uppercase tracking-wide">Delivery Address</h2>
-          <div className="space-y-2 text-sm">
-            <div>{addr.street || "—"}</div>
-            <div>{[addr.city, addr.state, addr.postalCode].filter(Boolean).join(", ") || "—"}</div>
-            <div>{addr.country || "—"}</div>
+        {/* Address & Actions */}
+        <div className="bg-white rounded-[32px] border border-slate-100 p-6 shadow-[0_8px_30px_rgba(0,0,0,0.01)] flex flex-col justify-between">
+          <div>
+            <h2 className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-4">Delivery Address</h2>
+            <div className="space-y-2 text-xs text-slate-600">
+              <div><span className="font-semibold text-slate-400">Street:</span> <span className="font-bold text-slate-800">{addr.street || "—"}</span></div>
+              <div><span className="font-semibold text-slate-400">City / State:</span> <span className="font-bold text-slate-800">{[addr.city, addr.state, addr.postalCode].filter(Boolean).join(", ") || "—"}</span></div>
+              <div><span className="font-semibold text-slate-400">Country:</span> <span className="font-bold text-slate-800">{addr.country || "—"}</span></div>
+            </div>
           </div>
 
-          <div className="mt-6 space-y-3">
+          <div className="mt-8 pt-4 border-t border-slate-50 space-y-3">
             {order.orderStatus === "ASSIGNED" && (
-              <button onClick={() => handleStatusUpdate("OUT_FOR_DELIVERY")} className="w-full px-4 py-3 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-colors">
+              <button 
+                onClick={() => handleStatusUpdate("OUT_FOR_DELIVERY")} 
+                className="w-full px-5 py-3 bg-rose-500 hover:bg-rose-600 active:scale-98 text-white text-xs font-bold rounded-xl transition-all duration-200 shadow-md shadow-rose-500/20 cursor-pointer"
+              >
                 🛵 Start Delivery
               </button>
             )}
             {order.orderStatus === "OUT_FOR_DELIVERY" && (
-              <button onClick={() => handleStatusUpdate("DELIVERED")} className="w-full px-4 py-3 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 transition-colors">
+              <button 
+                onClick={() => handleStatusUpdate("DELIVERED")} 
+                className="w-full px-5 py-3 bg-emerald-500 hover:bg-emerald-600 active:scale-98 text-white text-xs font-bold rounded-xl transition-all duration-200 shadow-md shadow-emerald-500/20 cursor-pointer"
+              >
                 ✅ Mark as Delivered
               </button>
             )}
           </div>
         </div>
+
       </div>
     </div>
   );

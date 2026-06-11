@@ -74,6 +74,9 @@ public class CustomMapper {
         // DeliveryPartner can be set if needed
         order.setOrderStatus(dto.getOrderStatus());
         order.setTotalAmount(dto.getTotalAmount());
+        order.setDiscountAmount(dto.getDiscountAmount());
+        order.setPromoCode(dto.getPromoCode());
+        order.setTipAmount(dto.getTipAmount());
         order.setDeliveryAddress(dto.getDeliveryAddress());
         order.setOrderTime(dto.getOrderTime());
         order.setDeliveryTime(dto.getDeliveryTime());
@@ -114,6 +117,9 @@ public class CustomMapper {
                 order.getDeliveryPartner() != null ? order.getDeliveryPartner().getName() : null);
         dto.setOrderStatus(order.getOrderStatus());
         dto.setTotalAmount(order.getTotalAmount());
+        dto.setDiscountAmount(order.getDiscountAmount());
+        dto.setPromoCode(order.getPromoCode());
+        dto.setTipAmount(order.getTipAmount());
         dto.setDeliveryAddress(order.getDeliveryAddress());
         dto.setOrderTime(order.getOrderTime());
         dto.setDeliveryTime(order.getDeliveryTime());

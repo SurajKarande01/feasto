@@ -37,79 +37,178 @@ const DeliveryProfile = () => {
   const handleMarkAllRead = async () => {
     const id = getPartnerId();
     if (!id) return;
-    try { await markAllDeliveryNotificationsRead(id); setNotifications(n => n.map(x => ({ ...x, isRead: true }))); toast.success("Notifications marked as read"); }
-    catch { toast.error("Failed to mark notifications"); }
+    try { 
+      await markAllDeliveryNotificationsRead(id); 
+      setNotifications(n => n.map(x => ({ ...x, isRead: true }))); 
+      toast.success("Notifications marked as read"); 
+    } catch { 
+      toast.error("Failed to mark notifications"); 
+    }
   };
 
-  const handleLogout = () => { localStorage.clear(); navigate("/welcome"); };
+  const handleLogout = () => { 
+    localStorage.clear(); 
+    navigate("/welcome"); 
+  };
 
-  if (loading) return <div className="flex items-center justify-center min-h-[60vh]"><div className="text-gray-500">Loading profile…</div></div>;
-  if (!profile) return <div className="flex items-center justify-center min-h-[60vh]"><div className="text-gray-500">Please login to view your profile</div></div>;
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] bg-white">
+        <div className="w-8 h-8 border-4 border-rose-500 border-t-transparent rounded-full animate-spin"></div>
+        <span className="text-slate-500 font-semibold text-xs mt-3 tracking-wide">Loading rider profile…</span>
+      </div>
+    );
+  }
+
+  if (!profile) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4 bg-white">
+        <div className="text-slate-400 text-3xl mb-2">🔒</div>
+        <h2 className="text-base font-bold text-slate-800">Access Restricted</h2>
+        <p className="text-slate-400 text-xs mt-1">Please sign in as a delivery partner to view this profile dashboard.</p>
+        <button onClick={() => navigate("/welcome")} className="mt-4 px-5 py-2 bg-slate-900 text-white rounded-xl text-xs font-bold hover:bg-slate-800 transition cursor-pointer">Go to Login</button>
+      </div>
+    );
+  }
 
   const loc = profile.currentLocation || {};
+  const hasNotifications = notifications.length > 0;
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-6">
-      <div className="bg-white rounded-2xl shadow-sm border p-6 mb-6">
-        <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-          <div className="w-20 h-20 rounded-full bg-gradient-to-br from-indigo-500 to-blue-600 flex items-center justify-center text-white text-2xl font-bold shadow-lg">
+    <div className="max-w-5xl mx-auto px-6 py-8 pb-16">
+      
+      {/* Header Profile Hero Card */}
+      <div className="bg-slate-50 border border-slate-100 p-6 rounded-[32px] mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-5">
+          <div className="w-16 h-16 rounded-2xl bg-rose-500 flex items-center justify-center text-white text-xl font-black shadow-lg shadow-rose-500/20 shrink-0">
             {(profile.name || "R").charAt(0).toUpperCase()}
           </div>
           <div className="flex-1">
-            <h1 className="text-2xl font-bold text-gray-900">{profile.name || "Delivery Partner"}</h1>
-            <p className="text-gray-500 text-sm">{profile.email}</p>
-            {profile.phoneNumber && <p className="text-gray-500 text-sm">{profile.phoneNumber}</p>}
+            <h1 className="text-2xl font-black text-slate-900 tracking-tight leading-none">{profile.name || "Delivery Partner"}</h1>
+            <p className="text-slate-500 text-xs mt-1.5 font-semibold">{profile.email}</p>
+            {profile.phoneNumber && <p className="text-slate-400 text-[11px] font-bold mt-0.5">{profile.phoneNumber}</p>}
           </div>
-          <div className="flex gap-2 items-center">
-            <span className={`px-3 py-1 rounded-full text-xs font-bold ${profile.isAvailable || profile.available ? "bg-green-100 text-green-700 border border-green-300" : "bg-gray-100 text-gray-600 border border-gray-200"}`}>
+          <div className="flex gap-2 items-center self-start sm:self-center shrink-0">
+            <span className={`text-[10px] font-extrabold px-3 py-1 rounded-full border uppercase tracking-wider ${
+              profile.isAvailable || profile.available 
+                ? "bg-emerald-50 text-emerald-700 border-emerald-100" 
+                : "bg-slate-100 text-slate-600 border-slate-200"
+            }`}>
               {profile.isAvailable || profile.available ? "Online" : "Offline"}
             </span>
-            <button onClick={handleLogout} className="px-4 py-2 bg-red-50 text-red-600 text-sm rounded-lg font-medium border border-red-200 hover:bg-red-100">Logout</button>
+            <button 
+              onClick={handleLogout} 
+              className="px-4 py-2 bg-rose-50 text-rose-600 text-xs font-bold rounded-xl transition-all hover:bg-rose-100 cursor-pointer"
+            >
+              Logout
+            </button>
           </div>
         </div>
       </div>
 
-      <div className="flex gap-2 mb-6">
-        {["profile", "notifications"].map(tab => (
-          <button key={tab} onClick={() => setActiveTab(tab)} className={`px-4 py-2 rounded-lg text-sm font-semibold border transition-colors capitalize ${activeTab === tab ? "bg-gray-900 text-white border-gray-900" : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"}`}>{tab}</button>
-        ))}
+      {/* Tabs */}
+      <div className="flex gap-2 mb-8">
+        <button 
+          onClick={() => setActiveTab("profile")} 
+          className={`whitespace-nowrap px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 border cursor-pointer ${
+            activeTab === "profile" 
+              ? "bg-slate-950 text-white border-slate-950 shadow-sm" 
+              : "bg-white text-slate-600 border-slate-200/80 hover:bg-slate-50 hover:text-slate-950"
+          }`}
+        >
+          My Profile
+        </button>
+        <button 
+          onClick={() => setActiveTab("notifications")} 
+          className={`whitespace-nowrap px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 border cursor-pointer ${
+            activeTab === "notifications" 
+              ? "bg-slate-950 text-white border-slate-950 shadow-sm" 
+              : "bg-white text-slate-600 border-slate-200/80 hover:bg-slate-50 hover:text-slate-950"
+          }`}
+        >
+          Notifications {notifications.length > 0 && `(${notifications.length})`}
+        </button>
       </div>
 
       {activeTab === "profile" && (
-        <div className="bg-white rounded-2xl shadow-sm border p-6">
-          <h2 className="text-lg font-bold text-gray-900 mb-4">Personal Information</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div><label className="text-sm text-gray-500">Full Name</label><div className="font-medium text-gray-900 mt-1">{profile.name || "—"}</div></div>
-            <div><label className="text-sm text-gray-500">Email</label><div className="font-medium text-gray-900 mt-1">{profile.email || "—"}</div></div>
-            <div><label className="text-sm text-gray-500">Phone</label><div className="font-medium text-gray-900 mt-1">{profile.phoneNumber || "—"}</div></div>
-            <div><label className="text-sm text-gray-500">Vehicle Type</label><div className="font-medium text-gray-900 mt-1">{profile.vehicleType || "—"}</div></div>
-            <div><label className="text-sm text-gray-500">Partner ID</label><div className="font-medium text-gray-900 mt-1">{profile.id || profile.deliveryPartnerId || "—"}</div></div>
-            <div><label className="text-sm text-gray-500">Availability</label><div className="font-medium text-gray-900 mt-1">{profile.isAvailable || profile.available ? "Available" : "Unavailable"}</div></div>
+        <div className="bg-white rounded-[32px] border border-slate-100 p-6 shadow-[0_8px_30px_rgba(0,0,0,0.01)]">
+          <h2 className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-6">Personal Information</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest block mb-1">Full Name</span>
+              <div className="font-bold text-slate-800 text-sm">{profile.name || "—"}</div>
+            </div>
+            <div>
+              <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest block mb-1">Email Address</span>
+              <div className="font-bold text-slate-800 text-sm">{profile.email || "—"}</div>
+            </div>
+            <div>
+              <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest block mb-1">Phone Number</span>
+              <div className="font-bold text-slate-800 text-sm">{profile.phoneNumber || "—"}</div>
+            </div>
+            <div>
+              <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest block mb-1">Vehicle Details</span>
+              <div className="font-bold text-slate-800 text-sm">{profile.vehicleDetails || profile.vehicleType || "—"}</div>
+            </div>
+            <div>
+              <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest block mb-1">Partner Identifier</span>
+              <div className="font-bold text-slate-800 text-sm">{profile.id || profile.deliveryPartnerId || "—"}</div>
+            </div>
+            <div>
+              <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest block mb-1">Current Status</span>
+              <div className="font-bold text-slate-800 text-sm">{profile.isAvailable || profile.available ? "Active & Online" : "Inactive / Offline"}</div>
+            </div>
           </div>
+
           {(loc.latitude || loc.longitude) && (
-            <div className="mt-4 pt-4 border-t">
-              <h3 className="text-sm font-semibold text-gray-700 mb-2">Last Known Location</h3>
-              <p className="text-sm text-gray-600">Lat: {loc.latitude}, Lon: {loc.longitude}</p>
+            <div className="mt-8 pt-6 border-t border-slate-100">
+              <span className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest block mb-2">Last Known Geolocation</span>
+              <p className="text-xs font-bold text-slate-600 bg-slate-50 px-3.5 py-2 rounded-xl inline-block border border-slate-100">
+                Latitude: {loc.latitude} • Longitude: {loc.longitude}
+              </p>
             </div>
           )}
         </div>
       )}
 
       {activeTab === "notifications" && (
-        <div className="bg-white rounded-2xl shadow-sm border p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-bold text-gray-900">Notifications</h2>
-            {notifications.length > 0 && <button onClick={handleMarkAllRead} className="text-sm text-blue-600 hover:underline">Mark all read</button>}
+        <div className="bg-white rounded-[32px] border border-slate-100 p-6 shadow-[0_8px_30px_rgba(0,0,0,0.01)]">
+          <div className="flex items-center justify-between pb-4 border-b border-slate-50 mb-5">
+            <h2 className="text-sm font-black text-slate-900 uppercase tracking-wider">Notifications</h2>
+            {hasNotifications && (
+              <button 
+                onClick={handleMarkAllRead} 
+                className="text-xs font-bold text-rose-500 hover:text-rose-600 hover:underline cursor-pointer"
+              >
+                Mark all read
+              </button>
+            )}
           </div>
-          {notifications.length === 0 ? (
-            <div className="text-center py-10"><div className="text-5xl mb-3">🔔</div><p className="text-gray-500">No notifications</p></div>
+
+          {!hasNotifications ? (
+            <div className="text-center py-12">
+              <div className="text-4xl mb-3">🔔</div>
+              <p className="text-slate-400 text-xs font-bold uppercase tracking-wider">All caught up!</p>
+              <p className="text-slate-400 text-[10px] mt-0.5">No notifications at the moment.</p>
+            </div>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-4">
               {notifications.map(n => (
-                <div key={n.notificationId || n.id} className={`p-4 rounded-xl border ${n.isRead ? "bg-white border-gray-100" : "bg-blue-50 border-blue-200"}`}>
-                  <div className="font-medium text-gray-900 text-sm">{n.title || "Notification"}</div>
-                  <div className="text-sm text-gray-600 mt-1">{n.message || n.content}</div>
-                  {n.timestamp && <div className="text-xs text-gray-400 mt-2">{new Date(n.timestamp).toLocaleString()}</div>}
+                <div 
+                  key={n.notificationId || n.id} 
+                  className={`p-4 rounded-2xl border transition-all duration-200 ${
+                    n.isRead 
+                      ? "bg-white border-slate-100" 
+                      : "bg-rose-50/20 border-rose-100/50 shadow-sm"
+                  }`}
+                >
+                  <div className="font-extrabold text-slate-900 text-xs">{n.title || "Notification"}</div>
+                  <div className="text-xs text-slate-500 mt-1 leading-relaxed">{n.message || n.content}</div>
+                  {n.timestamp && (
+                    <div className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mt-2.5">
+                      {new Date(n.timestamp).toLocaleString()}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>

@@ -248,6 +248,7 @@ function BecomeCustomer() {
                       placeholder="Email Address"
                       type="email"
                       required
+                      autoComplete="email"
                       className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-rose-500 focus:ring-4 focus:ring-rose-500/10 transition-all shadow-sm"
                     />
                   </div>
@@ -259,6 +260,7 @@ function BecomeCustomer() {
                       placeholder="Password"
                       type="password"
                       required
+                      autoComplete="current-password"
                       className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-rose-500 focus:ring-4 focus:ring-rose-500/10 transition-all shadow-sm"
                     />
                   </div>
@@ -291,6 +293,7 @@ function BecomeCustomer() {
                       value={registerForm.name}
                       onChange={handleRegisterChange}
                       required
+                      autoComplete="name"
                       placeholder="Full Name"
                       className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-rose-500 focus:ring-4 focus:ring-rose-500/10 transition-all shadow-sm"
                     />
@@ -299,6 +302,7 @@ function BecomeCustomer() {
                       value={registerForm.phoneNumber}
                       onChange={handleRegisterChange}
                       required
+                      autoComplete="tel"
                       placeholder="Phone Number"
                       className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-rose-500 focus:ring-4 focus:ring-rose-500/10 transition-all shadow-sm"
                     />
@@ -308,6 +312,7 @@ function BecomeCustomer() {
                       onChange={handleRegisterChange}
                       type="email"
                       required
+                      autoComplete="email"
                       placeholder="Email Address"
                       className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-rose-500 focus:ring-4 focus:ring-rose-500/10 transition-all shadow-sm"
                     />
@@ -318,6 +323,7 @@ function BecomeCustomer() {
                       placeholder="Password"
                       type="password"
                       required
+                      autoComplete="new-password"
                       className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-rose-500 focus:ring-4 focus:ring-rose-500/10 transition-all shadow-sm"
                     />
                   </div>
@@ -330,6 +336,7 @@ function BecomeCustomer() {
                         value={registerForm.postalCode}
                         onChange={handleRegisterChange}
                         required
+                        autoComplete="postal-code"
                         placeholder="Postal Code"
                         className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-rose-500 focus:ring-4 focus:ring-rose-500/10 transition-all shadow-sm"
                       />
@@ -338,6 +345,7 @@ function BecomeCustomer() {
                         value={registerForm.street}
                         onChange={handleRegisterChange}
                         required
+                        autoComplete="street-address"
                         placeholder="Street"
                         className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-rose-500 focus:ring-4 focus:ring-rose-500/10 transition-all shadow-sm"
                       />
@@ -348,6 +356,7 @@ function BecomeCustomer() {
                         value={registerForm.city}
                         onChange={handleRegisterChange}
                         required
+                        autoComplete="address-level2"
                         placeholder="City"
                         className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-rose-500 focus:ring-4 focus:ring-rose-500/10 transition-all shadow-sm"
                       />
@@ -356,6 +365,7 @@ function BecomeCustomer() {
                         value={registerForm.state}
                         onChange={handleRegisterChange}
                         required
+                        autoComplete="address-level1"
                         placeholder="State"
                         className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-rose-500 focus:ring-4 focus:ring-rose-500/10 transition-all shadow-sm"
                       />
@@ -364,6 +374,7 @@ function BecomeCustomer() {
                         value={registerForm.country}
                         onChange={handleRegisterChange}
                         required
+                        autoComplete="country"
                         placeholder="Country"
                         className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-rose-500 focus:ring-4 focus:ring-rose-500/10 transition-all shadow-sm"
                       />

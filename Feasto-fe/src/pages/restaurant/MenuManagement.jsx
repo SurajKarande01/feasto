@@ -262,11 +262,11 @@ const MenuManagement = () => {
 
       if (editingItem) {
         const url = `/restaurants/${rid}/menu/${editingItem.menuItemId}`;
-        await apiClient.put(url, fd, { headers: { "Content-Type": "multipart/form-data" } });
+        await apiClient.put(url, fd);
         toast.success("Menu item updated successfully");
       } else {
         const url = `/restaurants/${rid}/menu`;
-        await apiClient.post(url, fd, { headers: { "Content-Type": "multipart/form-data" } });
+        await apiClient.post(url, fd);
         toast.success("Menu item added successfully");
       }
       doFetch();

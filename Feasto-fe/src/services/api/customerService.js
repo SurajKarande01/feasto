@@ -109,3 +109,12 @@ export const markAllCustomerNotificationsRead = async (customerId) => {
   const res = await apiClient.post(`/notifications/CUSTOMER/${customerId}/mark-all-read`);
   return res.data;
 };
+
+/**
+ * Update user profile (name, phone, address/location).
+ * PUT /api/users/{userId}
+ */
+export const updateUserProfile = async (userId, data) => {
+  const res = await apiClient.put(`/users/${userId}`, data);
+  return res.data;
+};

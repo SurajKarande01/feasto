@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { getUserById, getLoyaltyByUserId, subscribeLoyalty, getCustomerNotifications, markAllCustomerNotificationsRead } from "../../services/api/customerService";
+import { getUserById, getLoyaltyByUserId, subscribeLoyalty, getCustomerNotifications, markAllCustomerNotificationsRead, updateUserProfile } from "../../services/api/customerService";
 import Footer from "../../components/common/Footer";
 
 const getUserIdFromStorage = () => {
@@ -22,6 +22,12 @@ const CustomerProfile = () => {
   const [activeTab, setActiveTab] = useState("profile");
   const [loyaltyLoading, setLoyaltyLoading] = useState(false);
 
+  // Edit state
+  const [editing, setEditing] = useState(false);
+  const [editForm, setEditForm] = useState({ name: "", phoneNumber: "", street: "", city: "", state: "", postalCode: "", country: "", latitude: "", longitude: "" });
+  const [saving, setSaving] = useState(false);
+  const [locLoading, setLocLoading] = useState(false);
+
   const loadData = useCallback(async () => {
     const userId = getUserIdFromStorage();
     if (!userId) { setLoading(false); return; }
@@ -37,6 +43,90 @@ const CustomerProfile = () => {
   }, []);
 
   useEffect(() => { loadData(); }, [loadData]);
+
+  // Initialize edit form when profile loads or editing starts
+  useEffect(() => {
+    if (profile && editing) {
+      const addr = profile.address || {};
+      setEditForm({
+        name: profile.name || "",
+        phoneNumber: profile.phoneNumber || "",
+        street: addr.street || "",
+        city: addr.city || "",
+        state: addr.state || "",
+        postalCode: addr.postalCode || "",
+        country: addr.country || "",
+        latitude: addr.latitude || "",
+        longitude: addr.longitude || "",
+      });
+    }
+  }, [profile, editing]);
+
+  const handleEditChange = (e) => {
+    const { name, value } = e.target;
+    setEditForm((f) => ({ ...f, [name]: value }));
+  };
+
+  const handleDetectLocation = () => {
+    if (!navigator.geolocation) { toast.error("Geolocation not supported"); return; }
+    setLocLoading(true);
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const { latitude, longitude } = pos.coords;
+        setEditForm((f) => ({ ...f, latitude, longitude }));
+        try {
+          const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latitude}&lon=${longitude}`);
+          if (res.ok) {
+            const data = await res.json();
+            const a = data.address || {};
+            const house = a.house_number || "";
+            const road = a.road || a.neighbourhood || a.suburb || "";
+            setEditForm((f) => ({
+              ...f,
+              street: ((house ? house + " " : "") + road) || f.street,
+              city: a.city || a.town || a.village || f.city,
+              state: a.state || f.state,
+              postalCode: a.postcode || f.postalCode,
+              country: a.country || f.country,
+              latitude, longitude,
+            }));
+          }
+        } catch { /* ignore reverse geocode */ }
+        finally { setLocLoading(false); }
+      },
+      () => { toast.error("Unable to detect location"); setLocLoading(false); },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  };
+
+  const handleSaveProfile = async () => {
+    const userId = getUserIdFromStorage();
+    if (!userId) return;
+    setSaving(true);
+    try {
+      const payload = {
+        name: editForm.name,
+        phoneNumber: editForm.phoneNumber,
+        address: {
+          street: editForm.street,
+          city: editForm.city,
+          state: editForm.state,
+          postalCode: editForm.postalCode,
+          country: editForm.country,
+          latitude: editForm.latitude ? parseFloat(editForm.latitude) : null,
+          longitude: editForm.longitude ? parseFloat(editForm.longitude) : null,
+        },
+      };
+      const updated = await updateUserProfile(userId, payload);
+      setProfile(updated);
+      // Sync localStorage
+      localStorage.setItem("customerProfile", JSON.stringify(updated));
+      setEditing(false);
+      toast.success("Profile updated successfully!");
+    } catch (err) {
+      toast.error(err?.response?.data?.error || err?.response?.data?.message || "Failed to update profile");
+    } finally { setSaving(false); }
+  };
 
   const handleSubscribeLoyalty = async (membershipType) => {
     const userId = getUserIdFromStorage();
@@ -139,53 +229,152 @@ const CustomerProfile = () => {
         {/* Profile Tab */}
         {activeTab === "profile" && (
           <div className="bg-white border border-slate-100 rounded-3xl p-6 md:p-8 shadow-[0_8px_30px_rgba(0,0,0,0.01)] space-y-6">
-            <div>
-              <h2 className="text-lg font-black text-slate-900 tracking-tight mb-4">Personal Information</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                <div>
-                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Full Name</label>
-                  <div className="font-bold text-slate-800 text-sm">{profile.name || "—"}</div>
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-black text-slate-900 tracking-tight">Personal Information</h2>
+              {!editing ? (
+                <button
+                  onClick={() => setEditing(true)}
+                  className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl transition-all cursor-pointer shadow-sm"
+                >
+                  Edit Profile
+                </button>
+              ) : (
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setEditing(false)}
+                    className="px-4 py-2 border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold rounded-xl transition-all cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleSaveProfile}
+                    disabled={saving}
+                    className="px-4 py-2 bg-rose-500 hover:bg-rose-600 text-white text-xs font-bold rounded-xl shadow-md shadow-rose-500/20 transition-all cursor-pointer disabled:opacity-50"
+                  >
+                    {saving ? "Saving…" : "Save Changes"}
+                  </button>
                 </div>
-                <div>
-                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Email Address</label>
-                  <div className="font-bold text-slate-800 text-sm">{profile.email || "—"}</div>
-                </div>
-                <div>
-                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Phone Number</label>
-                  <div className="font-bold text-slate-800 text-sm">{profile.phoneNumber || "—"}</div>
-                </div>
-                <div>
-                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">User Identifier</label>
-                  <div className="font-bold text-slate-800 text-sm">{profile.userId || profile.id || "—"}</div>
-                </div>
-              </div>
+              )}
             </div>
 
-            <div className="pt-6 border-t border-slate-50">
-              <h3 className="text-base font-black text-slate-900 tracking-tight mb-4">Default Delivery Address</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                <div>
-                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Street</label>
-                  <div className="font-bold text-slate-800 text-sm">{addr.street || "—"}</div>
+            {!editing ? (
+              /* Read-only view */
+              <>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Full Name</label>
+                    <div className="font-bold text-slate-800 text-sm">{profile.name || "—"}</div>
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Email Address</label>
+                    <div className="font-bold text-slate-800 text-sm">{profile.email || "—"}</div>
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Phone Number</label>
+                    <div className="font-bold text-slate-800 text-sm">{profile.phoneNumber || "—"}</div>
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">User Identifier</label>
+                    <div className="font-bold text-slate-800 text-sm">{profile.userId || profile.id || "—"}</div>
+                  </div>
                 </div>
-                <div>
-                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">City</label>
-                  <div className="font-bold text-slate-800 text-sm">{addr.city || "—"}</div>
+
+                <div className="pt-6 border-t border-slate-50">
+                  <h3 className="text-base font-black text-slate-900 tracking-tight mb-4">Default Delivery Address</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Street</label>
+                      <div className="font-bold text-slate-800 text-sm">{addr.street || "—"}</div>
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">City</label>
+                      <div className="font-bold text-slate-800 text-sm">{addr.city || "—"}</div>
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">State</label>
+                      <div className="font-bold text-slate-800 text-sm">{addr.state || "—"}</div>
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Postal Code</label>
+                      <div className="font-bold text-slate-800 text-sm">{addr.postalCode || "—"}</div>
+                    </div>
+                    <div className="sm:col-span-2">
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Country</label>
+                      <div className="font-bold text-slate-800 text-sm">{addr.country || "—"}</div>
+                    </div>
+                  </div>
+                  {(addr.latitude && addr.longitude) && (
+                    <div className="mt-4 bg-slate-50 rounded-xl p-3 text-xs text-slate-500 font-medium">
+                      📍 GPS: {Number(addr.latitude).toFixed(5)}, {Number(addr.longitude).toFixed(5)}
+                    </div>
+                  )}
                 </div>
-                <div>
-                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">State</label>
-                  <div className="font-bold text-slate-800 text-sm">{addr.state || "—"}</div>
+              </>
+            ) : (
+              /* Editable form */
+              <div className="space-y-5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Full Name</label>
+                    <input name="name" value={editForm.name} onChange={handleEditChange}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-rose-500 focus:ring-4 focus:ring-rose-500/10 transition-all shadow-sm" />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Phone Number</label>
+                    <input name="phoneNumber" value={editForm.phoneNumber} onChange={handleEditChange}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-rose-500 focus:ring-4 focus:ring-rose-500/10 transition-all shadow-sm" />
+                  </div>
                 </div>
-                <div>
-                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Postal Code</label>
-                  <div className="font-bold text-slate-800 text-sm">{addr.postalCode || "—"}</div>
-                </div>
-                <div className="sm:col-span-2">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Country</label>
-                  <div className="font-bold text-slate-800 text-sm">{addr.country || "—"}</div>
+
+                <div className="pt-4 border-t border-slate-50">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-base font-black text-slate-900 tracking-tight">Delivery Address</h3>
+                    <button
+                      type="button"
+                      onClick={handleDetectLocation}
+                      disabled={locLoading}
+                      className="px-3.5 py-2 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold rounded-xl transition-all cursor-pointer shadow-sm disabled:opacity-50"
+                    >
+                      {locLoading ? "Detecting…" : "📍 Detect Location"}
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="sm:col-span-2">
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Street</label>
+                      <input name="street" value={editForm.street} onChange={handleEditChange}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-rose-500 focus:ring-4 focus:ring-rose-500/10 transition-all shadow-sm" />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">City</label>
+                      <input name="city" value={editForm.city} onChange={handleEditChange}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-rose-500 focus:ring-4 focus:ring-rose-500/10 transition-all shadow-sm" />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">State</label>
+                      <input name="state" value={editForm.state} onChange={handleEditChange}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-rose-500 focus:ring-4 focus:ring-rose-500/10 transition-all shadow-sm" />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Postal Code</label>
+                      <input name="postalCode" value={editForm.postalCode} onChange={handleEditChange}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-rose-500 focus:ring-4 focus:ring-rose-500/10 transition-all shadow-sm" />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Country</label>
+                      <input name="country" value={editForm.country} onChange={handleEditChange}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-rose-500 focus:ring-4 focus:ring-rose-500/10 transition-all shadow-sm" />
+                    </div>
+                  </div>
+
+                  {(editForm.latitude && editForm.longitude) && (
+                    <div className="mt-4 bg-emerald-50 rounded-xl p-3 text-xs text-emerald-700 font-semibold border border-emerald-100">
+                      📍 GPS Detected: {Number(editForm.latitude).toFixed(5)}, {Number(editForm.longitude).toFixed(5)}
+                    </div>
+                  )}
                 </div>
               </div>
-            </div>
+            )}
           </div>
         )}
 

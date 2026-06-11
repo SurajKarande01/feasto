@@ -1,4 +1,4 @@
-import { Link, useLocation } from 'react-router-dom';
+import { Link, NavLink, useLocation } from 'react-router-dom';
 
 const Navbar = () => {
 	const location = useLocation();
@@ -25,6 +25,11 @@ const Navbar = () => {
 		window.location.href = "/welcome";
 	};
 
+	const linkClass = ({ isActive }) => 
+		`text-xs font-bold transition-all duration-200 ${
+			isActive ? 'text-rose-500 border-b-2 border-rose-500 pb-1' : 'text-slate-600 hover:text-rose-500'
+		}`;
+
 	return (
 		<nav className="bg-white/80 backdrop-blur-md border-b border-slate-100 py-3.5 px-6 sticky top-0 z-50">
 			<div className="max-w-7xl mx-auto flex items-center justify-between">
@@ -32,17 +37,17 @@ const Navbar = () => {
 					<span className="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
 					Feasto
 				</Link>
-				<div className="flex gap-4 items-center">
-					<Link to="/welcome" className="text-xs font-bold text-slate-600 hover:text-rose-500 transition-colors">Home</Link>
+				<div className="flex gap-6 items-center">
+					<NavLink to="/welcome" className={linkClass}>Home</NavLink>
 					{isLoggedIn ? (
 						<>
-							<Link to={getRedirectPath()} className="text-xs font-bold text-slate-600 hover:text-rose-500 transition-colors">Dashboard</Link>
+							<NavLink to={getRedirectPath()} className={linkClass}>Dashboard</NavLink>
 							<button onClick={handleLogout} className="text-xs font-bold bg-rose-500 hover:bg-rose-600 text-white px-3.5 py-1.5 rounded-xl transition-all cursor-pointer shadow-sm active:scale-98">Logout</button>
 						</>
 					) : (
 						<>
-							<Link to="/become-customer" className="text-xs font-bold text-slate-600 hover:text-rose-500 transition-colors">Login</Link>
-							<Link to="/partner-with-us" className="text-xs font-bold bg-slate-950 hover:bg-slate-800 text-white px-3.5 py-1.5 rounded-xl transition-all cursor-pointer shadow-sm active:scale-98">Partner</Link>
+							<NavLink to="/become-customer" className={linkClass}>Login</NavLink>
+							<NavLink to="/partner-with-us" className={linkClass}>Partner</NavLink>
 						</>
 					)}
 				</div>

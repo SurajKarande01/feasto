@@ -18,7 +18,14 @@ const CustomerRestaurantDetail = () => {
   const [availability, setAvailability] = useState("");
   const [sort, setSort] = useState("name_asc");
 
-  const [cart, setCart] = useState({});
+  const [cart, setCart] = useState(() => {
+    try {
+      const stored = sessionStorage.getItem(`cart_${id}`);
+      return stored ? JSON.parse(stored) : {};
+    } catch {
+      return {};
+    }
+  });
   const [showOrderModal, setShowOrderModal] = useState(false);
   const [userId, setUserId] = useState(null);
 
@@ -79,6 +86,16 @@ const CustomerRestaurantDetail = () => {
       // ignore localStorage parse errors
     }
   }, []);
+
+  useEffect(() => {
+    if (id) {
+      try {
+        sessionStorage.setItem(`cart_${id}`, JSON.stringify(cart));
+      } catch (err) {
+        console.error("Could not write cart to sessionStorage", err);
+      }
+    }
+  }, [cart, id]);
 
   const categories = useMemo(() => {
     const set = new Set();
@@ -172,11 +189,11 @@ const CustomerRestaurantDetail = () => {
 
   const placeOrder = async () => {
     if (!cartArray.length) {
-      window.alert("Add items to cart");
+      toast.error("Please add items to your cart first.");
       return;
     }
     if (!userId) {
-      window.alert("User not found. Please login as customer.");
+      toast.error("User not found. Please sign in as a customer.");
       return;
     }
     

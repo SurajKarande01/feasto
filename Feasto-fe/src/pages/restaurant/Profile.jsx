@@ -207,6 +207,11 @@ const RestaurantProfile = () => {
 
   // 1. Fetch Data
   useEffect(() => {
+    if (!restaurantId) {
+      setError("No restaurant profile found. Please login as a restaurant owner.");
+      setLoading(false);
+      return;
+    }
     const fetchData = async () => {
       try {
         setLoading(true);
@@ -215,7 +220,7 @@ const RestaurantProfile = () => {
           apiClient.get(`/restaurants/${restaurantId}/menu`)
         ]);
         setRestaurant(resDetails.data);
-        setMenuItems(resMenu.data);
+        setMenuItems(Array.isArray(resMenu.data) ? resMenu.data : []);
       } catch (err) {
         console.error("Error fetching data:", err);
         setError("Could not connect to Backend. Is Spring Boot running on Port 8080?");
@@ -259,8 +264,7 @@ const RestaurantProfile = () => {
 
         const response = await apiClient.post(
             `/restaurants/${restaurantId}/menu`, 
-            formData, 
-            { headers: { 'Content-Type': 'multipart/form-data' } }
+            formData
         );
 
         setMenuItems([response.data, ...menuItems]);

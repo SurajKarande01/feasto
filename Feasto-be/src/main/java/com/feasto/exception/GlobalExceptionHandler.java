@@ -70,11 +70,19 @@ public class GlobalExceptionHandler {
 		return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
 	}
 
+	@ExceptionHandler(org.springframework.dao.DataIntegrityViolationException.class)
+	public ResponseEntity<Map<String, String>> handleDataIntegrityViolation(org.springframework.dao.DataIntegrityViolationException ex) {
+		Map<String, String> error = new HashMap<>();
+		logger.error("Database integrity violation: {}", ex.getMessage());
+		error.put("error", "Database operation failed. This may be due to constraint violations, such as duplicate entries.");
+		return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+	}
+
 	@ExceptionHandler(Exception.class)
 	public ResponseEntity<Map<String, String>> handleGlobalException(Exception ex) {
 		Map<String, String> error = new HashMap<>();
 		logger.error("Unhandled exception: {}", ex.getMessage(), ex);
-		error.put("error", ex.getMessage());
+		error.put("error", "An unexpected server error occurred. Please try again later.");
 		return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
 	}
 }

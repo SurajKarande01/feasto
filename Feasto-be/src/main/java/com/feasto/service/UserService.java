@@ -80,4 +80,22 @@ public class UserService {
                 .map(mapper::toUserDTO)
                 .collect(Collectors.toList());
     }
+
+    public UserDTO updateUser(Long id, UserDTO dto) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
+        
+        if (dto.getName() != null && !dto.getName().isBlank()) {
+            user.setName(dto.getName());
+        }
+        if (dto.getPhoneNumber() != null && !dto.getPhoneNumber().isBlank()) {
+            user.setPhoneNumber(dto.getPhoneNumber());
+        }
+        if (dto.getAddress() != null) {
+            user.setAddress(dto.getAddress());
+        }
+        
+        User savedUser = userRepository.save(user);
+        return mapper.toUserDTO(savedUser);
+    }
 }

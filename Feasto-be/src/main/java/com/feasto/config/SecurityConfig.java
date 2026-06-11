@@ -13,15 +13,20 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.security.config.Customizer;
 import java.util.Arrays;
+import java.util.stream.Collectors;
 
 @Configuration
 @EnableMethodSecurity
 public class SecurityConfig {
+
+	@Value("${feasto.cors.allowed-origins:http://localhost:5173,http://localhost:5174,http://localhost:5175}")
+	private String allowedOriginsProperty;
 
 	@Autowired
 	private UserDetailsServiceImpl userDetailsService;
@@ -52,7 +57,11 @@ public class SecurityConfig {
 	@Bean
 	public CorsConfigurationSource corsConfigurationSource() {
 		CorsConfiguration configuration = new CorsConfiguration();
-		configuration.setAllowedOrigins(Arrays.asList("http://localhost:5173"));
+		java.util.List<String> origins = Arrays.stream(allowedOriginsProperty.split(","))
+				.map(String::trim)
+				.filter(o -> !o.isEmpty())
+				.collect(Collectors.toList());
+		configuration.setAllowedOrigins(origins);
 		configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
 		configuration.setAllowedHeaders(Arrays.asList("*"));
 		configuration.setExposedHeaders(Arrays.asList("x-auth-token"));
@@ -68,7 +77,23 @@ public class SecurityConfig {
 				.cors(Customizer.withDefaults())
 				.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 				.authorizeHttpRequests(auth -> 
-					auth.requestMatchers("/users/login", "/users/register", "/restaurants/login", "/restaurants/register", "/delivery-partners/login", "/delivery-partners/register", "/restaurants/random", "/v3/api-docs/**", "/swagger-ui/**").permitAll()
+					auth.requestMatchers(
+						// Auth endpoints
+						"/users/login", "/users/register",
+						"/restaurants/login", "/restaurants/register",
+						"/delivery-partners/login", "/delivery-partners/register",
+						// Public restaurant discovery endpoints
+						"/restaurants", "/restaurants/random", "/restaurants/search",
+						"/restaurants/nearby", "/restaurants/nearby/stream",
+						"/restaurants/city/**",
+						// Public restaurant detail + menu (GET only — method-level @PreAuthorize guards writes)
+						"/restaurants/*/menu",
+						"/restaurants/*",
+						// Public reviews
+						"/reviews/restaurant/*",
+						// Swagger / OpenAPI
+						"/v3/api-docs/**", "/swagger-ui/**"
+					).permitAll()
 						.anyRequest().authenticated()
 				);
 

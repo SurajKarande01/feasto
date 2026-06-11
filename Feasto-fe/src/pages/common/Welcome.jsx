@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import bgVideo from '../../assets/videos/add.mp4';
 import '../../index.css';
 
@@ -260,8 +260,8 @@ const Footer = () => (
       <div>
         <div className="text-white font-extrabold text-sm uppercase tracking-wider mb-4">For Partners</div>
         <ul className="text-xs space-y-2.5 font-medium">
-          <li><a href="#" className="hover:text-white transition-colors">Restaurant Portal</a></li>
-          <li><a href="#" className="hover:text-white transition-colors">Rider Dashboard</a></li>
+          <li><Link to="/partner-with-us" className="hover:text-white transition-colors">Restaurant Portal</Link></li>
+          <li><Link to="/become-rider" className="hover:text-white transition-colors">Rider Dashboard</Link></li>
           <li><a href="#" className="hover:text-white transition-colors">Merchant Help</a></li>
         </ul>
       </div>

@@ -219,6 +219,7 @@ const BecomeRider = () => {
                       placeholder="Email Address"
                       type="email"
                       required
+                      autoComplete="email"
                       className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-rose-500 focus:ring-4 focus:ring-rose-500/10 transition-all shadow-sm"
                     />
                   </div>
@@ -230,6 +231,7 @@ const BecomeRider = () => {
                       placeholder="Password"
                       type="password"
                       required
+                      autoComplete="current-password"
                       className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-rose-500 focus:ring-4 focus:ring-rose-500/10 transition-all shadow-sm"
                     />
                   </div>
@@ -255,6 +257,7 @@ const BecomeRider = () => {
                       value={form.email}
                       onChange={handleChange}
                       required
+                      autoComplete="email"
                       placeholder="Email Address"
                       className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-rose-500 focus:ring-4 focus:ring-rose-500/10 transition-all shadow-sm"
                     />
@@ -264,6 +267,7 @@ const BecomeRider = () => {
                       value={form.password}
                       onChange={handleChange}
                       required
+                      autoComplete="new-password"
                       placeholder="Password"
                       className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-rose-500 focus:ring-4 focus:ring-rose-500/10 transition-all shadow-sm"
                     />
@@ -272,6 +276,7 @@ const BecomeRider = () => {
                       value={form.name}
                       onChange={handleChange}
                       required
+                      autoComplete="name"
                       placeholder="Full Name"
                       className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-rose-500 focus:ring-4 focus:ring-rose-500/10 transition-all shadow-sm"
                     />
@@ -280,6 +285,7 @@ const BecomeRider = () => {
                       value={form.phoneNumber}
                       onChange={handleChange}
                       required
+                      autoComplete="tel"
                       placeholder="Phone Number"
                       className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-rose-500 focus:ring-4 focus:ring-rose-500/10 transition-all shadow-sm"
                     />

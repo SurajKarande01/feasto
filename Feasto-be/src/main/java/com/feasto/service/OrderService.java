@@ -97,6 +97,12 @@ public class OrderService {
 				com.feasto.entity.MenuItem dbMenuItem = menuItemRepository.findById(item.getMenuItem().getMenuItemId())
 						.orElseThrow(() -> new ResourceNotFoundException(
 								"Menu item not found with id: " + item.getMenuItem().getMenuItemId()));
+				if (dbMenuItem.getRestaurant() == null || !dbMenuItem.getRestaurant().getRestaurantId().equals(restaurant.getRestaurantId())) {
+					throw new ValidationException("Menu item '" + dbMenuItem.getName() + "' does not belong to the selected restaurant.");
+				}
+				if (dbMenuItem.getIsAvailable() == null || !dbMenuItem.getIsAvailable()) {
+					throw new ValidationException("Menu item '" + dbMenuItem.getName() + "' is currently not available.");
+				}
 				item.setPrice(dbMenuItem.getPrice());
 				calculatedSubtotal += dbMenuItem.getPrice() * item.getQuantity();
 			}

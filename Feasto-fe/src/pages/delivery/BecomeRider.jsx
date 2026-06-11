@@ -1,9 +1,23 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { loginDeliveryPartner, registerDeliveryPartner } from '../../services/api/authService';
 
 const BecomeRider = () => {
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      if (localStorage.getItem("customerProfile")) {
+        navigate("/customer-dashboard");
+      } else if (localStorage.getItem("restaurantProfile")) {
+        navigate("/restaurant-dashboard");
+      } else if (localStorage.getItem("deliveryProfile")) {
+        navigate("/delivery-dashboard");
+      }
+    }
+  }, [navigate]);
+
   const [form, setForm] = useState({
     name: '',
     phoneNumber: '',

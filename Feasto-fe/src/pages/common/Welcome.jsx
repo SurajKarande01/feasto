@@ -3,7 +3,7 @@ import bgVideo from '../../assets/videos/add.mp4';
 import '../../index.css';
 
 
-const Hero = ({ onOrder, onBrowse, onCustomer, onPartner, onRider }) => (
+const Hero = ({ onOrder, onBrowse, onCustomer, onPartner, onRider, isLoggedIn, onGoToDashboard, onLogout }) => (
   <section className="relative overflow-hidden text-white min-h-[75vh] flex items-center justify-center py-20 bg-slate-950">
     {/* Background video */}
     <video src={bgVideo} autoPlay muted loop playsInline className="absolute inset-0 w-full h-full object-cover z-0 opacity-60" />
@@ -40,19 +40,36 @@ const Hero = ({ onOrder, onBrowse, onCustomer, onPartner, onRider }) => (
 
       <div className="lg:w-5/12 w-full max-w-sm">
         <div className="bg-white/10 backdrop-blur-lg border border-white/10 rounded-3xl p-8 shadow-2xl text-white">
-          <h3 className="text-xl font-bold tracking-tight mb-2">Explore Opportunities</h3>
-          <p className="text-xs text-slate-300 mb-6 font-medium">Join Feasto as a merchant, partner, or delivery champion.</p>
-          <div className="grid gap-3">
-            <button onClick={onCustomer} className="w-full text-center bg-white/10 hover:bg-white/20 border border-white/10 text-white font-bold text-xs py-3 rounded-xl transition-all cursor-pointer">
-              Sign In as Customer
-            </button>
-            <button onClick={onPartner} className="w-full text-center bg-white/10 hover:bg-white/20 border border-white/10 text-white font-bold text-xs py-3 rounded-xl transition-all cursor-pointer">
-              Partner Your Restaurant
-            </button>
-            <button onClick={onRider} className="w-full text-center bg-rose-500 hover:bg-rose-600 text-white font-bold text-xs py-3 rounded-xl transition-all shadow-[0_4px_12px_rgba(255,56,92,0.3)] cursor-pointer">
-              Join as a Delivery Rider
-            </button>
-          </div>
+          {isLoggedIn ? (
+            <>
+              <h3 className="text-xl font-bold tracking-tight mb-2">Welcome Back!</h3>
+              <p className="text-xs text-slate-300 mb-6 font-medium">You are currently logged in. Access your dashboard or manage your account.</p>
+              <div className="grid gap-3">
+                <button onClick={onGoToDashboard} className="w-full text-center bg-rose-500 hover:bg-rose-600 text-white font-bold text-xs py-3 rounded-xl transition-all shadow-[0_4px_12px_rgba(255,56,92,0.3)] cursor-pointer">
+                  Go to Dashboard
+                </button>
+                <button onClick={onLogout} className="w-full text-center bg-white/10 hover:bg-white/20 border border-white/10 text-white font-bold text-xs py-3 rounded-xl transition-all cursor-pointer">
+                  Logout
+                </button>
+              </div>
+            </>
+          ) : (
+            <>
+              <h3 className="text-xl font-bold tracking-tight mb-2">Explore Opportunities</h3>
+              <p className="text-xs text-slate-300 mb-6 font-medium">Join Feasto as a merchant, partner, or delivery champion.</p>
+              <div className="grid gap-3">
+                <button onClick={onCustomer} className="w-full text-center bg-white/10 hover:bg-white/20 border border-white/10 text-white font-bold text-xs py-3 rounded-xl transition-all cursor-pointer">
+                  Sign In as Customer
+                </button>
+                <button onClick={onPartner} className="w-full text-center bg-white/10 hover:bg-white/20 border border-white/10 text-white font-bold text-xs py-3 rounded-xl transition-all cursor-pointer">
+                  Partner Your Restaurant
+                </button>
+                <button onClick={onRider} className="w-full text-center bg-rose-500 hover:bg-rose-600 text-white font-bold text-xs py-3 rounded-xl transition-all shadow-[0_4px_12px_rgba(255,56,92,0.3)] cursor-pointer">
+                  Join as a Delivery Rider
+                </button>
+              </div>
+            </>
+          )}
         </div>
       </div>
     </div>
@@ -279,10 +296,13 @@ const Footer = () => (
 export default function Welcome() {
   const navigate = useNavigate();
 
+  const customer = localStorage.getItem("customerProfile");
+  const restaurant = localStorage.getItem("restaurantProfile");
+  const delivery = localStorage.getItem("deliveryProfile");
+  const token = localStorage.getItem("token");
+  const isLoggedIn = !!token && (customer || restaurant || delivery);
+
   const getRedirectPath = () => {
-    const customer = localStorage.getItem("customerProfile");
-    const restaurant = localStorage.getItem("restaurantProfile");
-    const delivery = localStorage.getItem("deliveryProfile");
     if (customer) return '/customer-dashboard';
     if (restaurant) return '/restaurant-dashboard';
     if (delivery) return '/delivery-dashboard';
@@ -295,23 +315,40 @@ export default function Welcome() {
   const onRider = () => navigate('/become-rider');
   const onCustomer = () => navigate('/become-customer');
 
+  const onGoToDashboard = () => navigate(getRedirectPath());
+  const onLogout = () => {
+    localStorage.clear();
+    window.location.reload();
+  };
+
   return (
     <div className="min-h-screen bg-white text-slate-800 animate-fade-in">
-      <Hero onOrder={onOrder} onBrowse={onBrowse} onCustomer={onCustomer} onPartner={onPartner} onRider={onRider} />
+      <Hero 
+        onOrder={onOrder} 
+        onBrowse={onBrowse} 
+        onCustomer={onCustomer} 
+        onPartner={onPartner} 
+        onRider={onRider} 
+        isLoggedIn={isLoggedIn}
+        onGoToDashboard={onGoToDashboard}
+        onLogout={onLogout}
+      />
       <Stats />
       <Features />
       <GoldBenefits />
       <Services />
 
-      <div className="bg-slate-50/50 border-t border-b border-slate-100 py-16 text-center">
-        <h3 className="text-2xl font-black text-slate-900 mb-2">Ready to embark on a flavor journey?</h3>
-        <p className="text-slate-500 text-sm max-w-sm mx-auto mb-6">Create a free account or login to access hundreds of premium restaurants.</p>
-        <div className="flex gap-4 justify-center">
-          <button onClick={() => navigate('/partner-with-us')} className="bg-white hover:bg-slate-50 text-slate-800 border border-slate-200 font-bold text-xs px-6 py-3 rounded-xl transition-all duration-200 shadow-sm inline-flex items-center justify-center cursor-pointer">Partner With Us</button>
-          <button onClick={() => navigate('/become-rider')} className="bg-white hover:bg-slate-50 text-slate-800 border border-slate-200 font-bold text-xs px-6 py-3 rounded-xl transition-all duration-200 shadow-sm inline-flex items-center justify-center cursor-pointer">Become a Rider</button>
-          <button onClick={() => navigate('/become-customer')} className="bg-rose-500 hover:bg-rose-600 text-white font-bold text-xs px-8 py-3 rounded-xl transition-all duration-200 shadow-lg shadow-rose-500/20 inline-flex items-center justify-center cursor-pointer">Customer Portal</button>
+      {!isLoggedIn && (
+        <div className="bg-slate-50/50 border-t border-b border-slate-100 py-16 text-center">
+          <h3 className="text-2xl font-black text-slate-900 mb-2">Ready to embark on a flavor journey?</h3>
+          <p className="text-slate-500 text-sm max-w-sm mx-auto mb-6">Create a free account or login to access hundreds of premium restaurants.</p>
+          <div className="flex gap-4 justify-center">
+            <button onClick={() => navigate('/partner-with-us')} className="bg-white hover:bg-slate-50 text-slate-800 border border-slate-200 font-bold text-xs px-6 py-3 rounded-xl transition-all duration-200 shadow-sm inline-flex items-center justify-center cursor-pointer">Partner With Us</button>
+            <button onClick={() => navigate('/become-rider')} className="bg-white hover:bg-slate-50 text-slate-800 border border-slate-200 font-bold text-xs px-6 py-3 rounded-xl transition-all duration-200 shadow-sm inline-flex items-center justify-center cursor-pointer">Become a Rider</button>
+            <button onClick={() => navigate('/become-customer')} className="bg-rose-500 hover:bg-rose-600 text-white font-bold text-xs px-8 py-3 rounded-xl transition-all duration-200 shadow-lg shadow-rose-500/20 inline-flex items-center justify-center cursor-pointer">Customer Portal</button>
+          </div>
         </div>
-      </div>
+      )}
 
       <Footer />
     </div>

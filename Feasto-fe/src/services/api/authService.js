@@ -3,6 +3,7 @@ import apiClient from "./apiClient";
 export const loginUser = async (data) => {
   const res = await apiClient.post("/users/login", data);
   if (res.data.token) {
+    localStorage.clear();
     localStorage.setItem("token", res.data.token);
     localStorage.setItem("customerProfile", JSON.stringify(res.data.profile));
   }
@@ -16,6 +17,7 @@ export const registerUser = (data) => {
 export const loginRestaurant = async (data) => {
   const res = await apiClient.post("/restaurants/login", data);
   if (res.data.token) {
+    localStorage.clear();
     localStorage.setItem("token", res.data.token);
     localStorage.setItem("restaurantProfile", JSON.stringify(res.data.profile));
   }
@@ -30,6 +32,7 @@ export const registerRestaurant = (data) => {
 export const loginDeliveryPartner = async (data) => {
   const res = await apiClient.post("/delivery-partners/login", data);
   if (res.data.token) {
+    localStorage.clear();
     localStorage.setItem("token", res.data.token);
     localStorage.setItem("deliveryProfile", JSON.stringify(res.data.profile));
   }

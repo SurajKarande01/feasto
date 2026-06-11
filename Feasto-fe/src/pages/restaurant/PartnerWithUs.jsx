@@ -126,6 +126,19 @@ export default function PartnerWithUs() {
   };
 
   useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      if (localStorage.getItem("customerProfile")) {
+        navigate("/customer-dashboard");
+      } else if (localStorage.getItem("restaurantProfile")) {
+        navigate("/restaurant-dashboard");
+      } else if (localStorage.getItem("deliveryProfile")) {
+        navigate("/delivery-dashboard");
+      }
+    }
+  }, [navigate]);
+
+  useEffect(() => {
     if (isRegister && (!registerForm.latitude || !registerForm.longitude)) {
       handleGetLocation();
     }

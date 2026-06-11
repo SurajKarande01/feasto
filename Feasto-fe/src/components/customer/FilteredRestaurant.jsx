@@ -2,6 +2,18 @@ import { useEffect, useMemo, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { getRandomRestaurants, searchRestaurants, getNearbyRestaurants } from "../../services/api/restaurantService";
 
+const CUISINE_CATEGORIES = [
+  { name: "Pizza", emoji: "🍕" },
+  { name: "Burger", emoji: "🍔" },
+  { name: "Biryani", emoji: "🍛" },
+  { name: "Chinese", emoji: "🍜" },
+  { name: "Desserts", emoji: "🍰" },
+  { name: "Beverages", emoji: "🥤" },
+  { name: "Healthy", emoji: "🥗" },
+  { name: "North Indian", emoji: "🍲" },
+  { name: "South Indian", emoji: "🥘" },
+];
+
 const FilteredRestaurant = () => {
   const [restaurants, setRestaurants] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -127,6 +139,33 @@ const FilteredRestaurant = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-6">
+      {/* What's on your mind? Cuisine Slider */}
+      <div className="mb-8 bg-white/60 backdrop-blur-md rounded-[28px] border border-slate-100 p-5 shadow-[0_8px_30px_rgba(0,0,0,0.015)]">
+        <h2 className="text-[10px] font-extrabold text-rose-500 uppercase tracking-widest mb-4 px-1">What's on your mind?</h2>
+        <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide scroll-smooth">
+          {CUISINE_CATEGORIES.map((cat) => {
+            const isActive = cuisine.toLowerCase() === cat.name.toLowerCase();
+            return (
+              <button
+                key={cat.name}
+                type="button"
+                onClick={() => setCuisine(isActive ? "" : cat.name)}
+                className={`flex flex-col items-center justify-center min-w-[84px] py-3 px-2 rounded-2xl border transition-all duration-200 cursor-pointer ${
+                  isActive
+                    ? "bg-rose-500 border-rose-500 text-white shadow-md shadow-rose-500/20 scale-98"
+                    : "bg-white border-slate-100 hover:border-slate-200 text-slate-700 shadow-sm hover:scale-[1.02]"
+                }`}
+              >
+                <span className="text-2xl mb-1 select-none">{cat.emoji}</span>
+                <span className="text-[10px] font-extrabold tracking-wide uppercase truncate max-w-[76px]">
+                  {cat.name}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
       {/* Search & Filter Bar */}
       <div className="bg-white/80 backdrop-blur-md rounded-3xl border border-slate-100 p-6 mb-8 shadow-[0_8px_30px_rgba(0,0,0,0.02)]">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">

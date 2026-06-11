@@ -12,6 +12,20 @@ L.Icon.Default.mergeOptions({
   shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
 });
 
+const riderIcon = L.divIcon({
+  html: `<div style="font-size: 24px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.25));">🛵</div>`,
+  className: "custom-rider-icon",
+  iconSize: [30, 30],
+  iconAnchor: [15, 15],
+});
+
+const homeIcon = L.divIcon({
+  html: `<div style="font-size: 24px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.25));">🏠</div>`,
+  className: "custom-home-icon",
+  iconSize: [30, 30],
+  iconAnchor: [15, 15],
+});
+
 const STEPS = ["PLACED", "ACCEPTED", "PREPARING", "ASSIGNED", "OUT_FOR_DELIVERY", "DELIVERED"];
 const STEP_LABELS = { 
   PLACED: "Placed", 
@@ -38,6 +52,7 @@ const CustomerOrderTracking = () => {
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [riderLocation, setRiderLocation] = useState(null);
 
   const fetchOrder = useCallback(async () => {
     if (!id) return;
@@ -56,6 +71,30 @@ const CustomerOrderTracking = () => {
     const interval = setInterval(fetchOrder, 10000);
     return () => clearInterval(interval);
   }, [fetchOrder]);
+
+  // Periodic rider location tracking during delivery
+  useEffect(() => {
+    if (!order || order.orderStatus !== "OUT_FOR_DELIVERY" || !order.deliveryPartnerId) {
+      setRiderLocation(null);
+      return;
+    }
+
+    const fetchRiderLoc = async () => {
+      try {
+        const res = await apiClient.get(`/delivery-partners/${order.deliveryPartnerId}`);
+        const loc = res.data?.currentLocation;
+        if (loc?.latitude && loc?.longitude) {
+          setRiderLocation([loc.latitude, loc.longitude]);
+        }
+      } catch (err) {
+        console.debug("Failed to fetch rider coordinates:", err);
+      }
+    };
+
+    fetchRiderLoc();
+    const interval = setInterval(fetchRiderLoc, 8000);
+    return () => clearInterval(interval);
+  }, [order]);
 
   const currentStep = useMemo(() => {
     if (!order) return -1;
@@ -212,9 +251,12 @@ const CustomerOrderTracking = () => {
           </div>
           {deliveryCoords && (
             <div className="rounded-2xl overflow-hidden border border-slate-100 mt-4" style={{ height: 220 }}>
-              <MapContainer center={deliveryCoords} zoom={15} style={{ height: "100%", width: "100%" }} scrollWheelZoom={false}>
+              <MapContainer center={riderLocation || deliveryCoords} zoom={15} style={{ height: "100%", width: "100%" }} scrollWheelZoom={false}>
                 <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution='&copy; OpenStreetMap' />
-                <Marker position={deliveryCoords}><Popup>Delivery Address</Popup></Marker>
+                <Marker position={deliveryCoords} icon={homeIcon}><Popup>Delivery Address</Popup></Marker>
+                {riderLocation && (
+                  <Marker position={riderLocation} icon={riderIcon}><Popup>Delivery Partner</Popup></Marker>
+                )}
               </MapContainer>
             </div>
           )}

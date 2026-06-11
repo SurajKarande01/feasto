@@ -39,18 +39,25 @@ const CustomerRestaurantDetail = () => {
     longitude: null,
   });
 
+  const [reviews, setReviews] = useState([]);
+  const [paymentMethod, setPaymentMethod] = useState("cod");
+  const [cardDetails, setCardDetails] = useState({ nameOnCard: "", cardNumber: "", expiry: "", cvv: "" });
+  const [upiId, setUpiId] = useState("");
+
   useEffect(() => {
     const fetchMenu = async () => {
       if (!id) return;
       setLoading(true);
       setError("");
       try {
-        const [menuRes, infoRes] = await Promise.all([
+        const [menuRes, infoRes, reviewsRes] = await Promise.all([
           apiClient.get(`/restaurants/${id}/menu`),
-          getRestaurantById(id)
+          getRestaurantById(id),
+          apiClient.get(`/reviews/restaurant/${id}`).catch(() => ({ data: [] }))
         ]);
         setMenu(Array.isArray(menuRes.data) ? menuRes.data : []);
         setRestaurantInfo(infoRes);
+        setReviews(Array.isArray(reviewsRes.data) ? reviewsRes.data : []);
       } catch (err) {
         setError(err.message || "Failed to load menu");
       } finally {
@@ -172,6 +179,35 @@ const CustomerRestaurantDetail = () => {
       window.alert("User not found. Please login as customer.");
       return;
     }
+    
+    // Validate address fields
+    if (!address.street?.trim() || !address.city?.trim() || !address.state?.trim() || !address.postalCode?.trim()) {
+      toast.error("Please fill in complete delivery address");
+      return;
+    }
+
+    // Validate payment method details
+    if (paymentMethod === "card") {
+      if (!cardDetails.nameOnCard.trim() || !cardDetails.cardNumber.trim() || !cardDetails.expiry.trim() || !cardDetails.cvv.trim()) {
+        toast.error("Please fill in complete card details");
+        return;
+      }
+      const rawCardNum = cardDetails.cardNumber.replace(/\s/g, "");
+      if (rawCardNum.length !== 16 || isNaN(rawCardNum)) {
+        toast.error("Card number must be 16 digits");
+        return;
+      }
+      if (cardDetails.cvv.length !== 3 || isNaN(cardDetails.cvv)) {
+        toast.error("CVV must be 3 digits");
+        return;
+      }
+    } else if (paymentMethod === "upi") {
+      if (!upiId.trim() || !upiId.includes("@")) {
+        toast.error("Please enter a valid UPI ID (e.g. user@okhdfcbank)");
+        return;
+      }
+    }
+
     const payload = {
       userId: Number(userId),
       restaurantId: Number(id),
@@ -198,6 +234,9 @@ const CustomerRestaurantDetail = () => {
       setPromoError("");
       setTipAmount(0);
       setCustomTip("");
+      setPaymentMethod("cod");
+      setCardDetails({ nameOnCard: "", cardNumber: "", expiry: "", cvv: "" });
+      setUpiId("");
       setShowOrderModal(false);
       navigate(`/order-tracking/${res.data.orderId}`);
       return res.data;
@@ -390,6 +429,55 @@ const CustomerRestaurantDetail = () => {
         </div>
       </div>
 
+      {/* Reviews & Customer Feedback Section */}
+      <div className="mt-12 bg-white rounded-[32px] border border-slate-100 p-6 md:p-8 shadow-[0_8px_30px_rgba(0,0,0,0.015)] mb-28">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-slate-100 pb-5 mb-6 gap-4">
+          <div>
+            <span className="text-[10px] font-extrabold text-rose-500 uppercase tracking-widest block mb-0.5">Community voices</span>
+            <h2 className="text-2xl font-black text-slate-900 tracking-tight">Customer Feedback</h2>
+          </div>
+          <div className="bg-amber-50 border border-amber-100/50 rounded-2xl px-4 py-2.5 flex items-center gap-2 shadow-sm font-bold text-xs text-amber-700 self-start sm:self-center">
+            ⭐ {restaurantInfo?.rating ? restaurantInfo.rating.toFixed(1) : "—"} / 5.0
+            <span className="text-[10px] text-slate-400 font-semibold font-normal">({reviews.length} reviews)</span>
+          </div>
+        </div>
+
+        {reviews.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {reviews.map((rev) => (
+              <div key={rev.reviewId} className="bg-slate-50/50 border border-slate-100 rounded-3xl p-5 shadow-[0_4px_15px_rgba(0,0,0,0.005)] hover:shadow-md transition-all duration-300">
+                <div className="flex items-center justify-between gap-3 mb-2.5">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-full bg-rose-500/10 flex items-center justify-center text-rose-600 font-extrabold text-xs">
+                      C
+                    </div>
+                    <div>
+                      <div className="text-xs font-black text-slate-800">Customer #{rev.userId}</div>
+                      <div className="text-[10px] text-slate-400 font-semibold mt-0.5">
+                        {rev.reviewTime ? new Date(rev.reviewTime).toLocaleDateString() : ""}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center text-amber-500 text-xs font-black bg-amber-50 px-2.5 py-1 rounded-full tracking-wider">
+                    {"★".repeat(rev.rating)}{"☆".repeat(5 - rev.rating)}
+                  </div>
+                </div>
+                {rev.comment && (
+                  <p className="text-xs text-slate-600 leading-relaxed font-medium pl-0.5 italic">
+                    "{rev.comment}"
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-12 text-slate-400 text-xs font-semibold bg-slate-50/50 border border-dashed border-slate-200 rounded-3xl">
+            <span className="text-3xl block mb-2">💬</span>
+            No reviews submitted yet. Be the first to order and review!
+          </div>
+        )}
+      </div>
+
       {cartArray.length > 0 && (
         <div className="fixed bottom-4 left-4 right-4 bg-slate-950/95 backdrop-blur-md text-white rounded-2xl py-4 px-6 shadow-2xl z-40 max-w-5xl mx-auto flex items-center justify-between border border-white/10">
           <div className="flex items-center gap-3">
@@ -546,6 +634,125 @@ const CustomerRestaurantDetail = () => {
                 </div>
               )}
               <div className="flex items-center justify-between text-sm font-black text-slate-900 pt-3 border-t border-slate-100"><span>Grand Total</span><span>₹{total.toFixed(2)}</span></div>
+            </div>
+
+            {/* Payment Method Selection */}
+            <div className="mt-6 border-t border-slate-100 pt-5">
+              <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Payment Method</div>
+              <div className="grid grid-cols-3 gap-2.5 mb-4">
+                {[
+                  { id: "cod", label: "Cash on Delivery", icon: "💵" },
+                  { id: "card", label: "Card Payment", icon: "💳" },
+                  { id: "upi", label: "UPI Pay", icon: "📱" },
+                ].map((pm) => (
+                  <button
+                    key={pm.id}
+                    type="button"
+                    onClick={() => setPaymentMethod(pm.id)}
+                    className={`p-3 rounded-2xl border flex flex-col items-center justify-center gap-1.5 transition-all text-center cursor-pointer ${
+                      paymentMethod === pm.id
+                        ? "bg-rose-500 border-rose-500 text-white shadow-md shadow-rose-500/15"
+                        : "bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100"
+                    }`}
+                  >
+                    <span className="text-lg">{pm.icon}</span>
+                    <span className="text-[9px] font-extrabold uppercase tracking-wide leading-none">{pm.label}</span>
+                  </button>
+                ))}
+              </div>
+
+              {/* Card Form */}
+              {paymentMethod === "card" && (
+                <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 mb-4 space-y-3">
+                  <div className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-1">Secure Card Details</div>
+                  <input
+                    type="text"
+                    placeholder="Cardholder Name"
+                    value={cardDetails.nameOnCard}
+                    onChange={(e) => setCardDetails((prev) => ({ ...prev, nameOnCard: e.target.value }))}
+                    className="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-800 focus:outline-none focus:border-rose-500 transition-all shadow-sm"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Card Number (16 Digits)"
+                    maxLength={19}
+                    value={cardDetails.cardNumber}
+                    onChange={(e) => {
+                      const v = e.target.value.replace(/\s+/g, "").replace(/[^0-9]/gi, "");
+                      const matches = v.match(/\d{4,16}/g);
+                      const match = (matches && matches[0]) || "";
+                      const parts = [];
+                      for (let i = 0, len = match.length; i < len; i += 4) {
+                        parts.push(match.substring(i, i + 4));
+                      }
+                      if (parts.length > 0) {
+                        setCardDetails((prev) => ({ ...prev, cardNumber: parts.join(" ") }));
+                      } else {
+                        setCardDetails((prev) => ({ ...prev, cardNumber: v }));
+                      }
+                    }}
+                    className="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-800 focus:outline-none focus:border-rose-500 transition-all shadow-sm"
+                  />
+                  <div className="grid grid-cols-2 gap-3">
+                    <input
+                      type="text"
+                      placeholder="MM/YY Expiry"
+                      maxLength={5}
+                      value={cardDetails.expiry}
+                      onChange={(e) => {
+                        let v = e.target.value.replace(/[^0-9]/g, "");
+                        if (v.length > 2) {
+                          v = v.substring(0, 2) + "/" + v.substring(2, 4);
+                        }
+                        setCardDetails((prev) => ({ ...prev, expiry: v }));
+                      }}
+                      className="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-800 focus:outline-none focus:border-rose-500 transition-all shadow-sm"
+                    />
+                    <input
+                      type="password"
+                      placeholder="CVV"
+                      maxLength={3}
+                      value={cardDetails.cvv}
+                      onChange={(e) => {
+                        const v = e.target.value.replace(/[^0-9]/g, "");
+                        setCardDetails((prev) => ({ ...prev, cvv: v }));
+                      }}
+                      className="w-full bg-white border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-800 focus:outline-none focus:border-rose-500 transition-all shadow-sm"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* UPI Form */}
+              {paymentMethod === "upi" && (
+                <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 mb-4 space-y-3">
+                  <div className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-1">Enter UPI ID</div>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      placeholder="username@bank"
+                      value={upiId}
+                      onChange={(e) => setUpiId(e.target.value)}
+                      className="flex-1 bg-white border border-slate-200 rounded-xl px-3.5 py-2 text-xs text-slate-800 focus:outline-none focus:border-rose-500 transition-all shadow-sm"
+                    />
+                  </div>
+                  <div className="flex flex-wrap gap-1.5 pt-1">
+                    {["@okaxis", "@okicici", "@okhdfcbank", "@paytm"].map((suffix) => (
+                      <button
+                        key={suffix}
+                        type="button"
+                        onClick={() => {
+                          const base = upiId.split("@")[0] || "";
+                          setUpiId(base + suffix);
+                        }}
+                        className="px-2.5 py-1 bg-white border border-slate-200 rounded-lg text-[10px] font-bold text-slate-600 hover:bg-slate-50 cursor-pointer transition-all"
+                      >
+                        {suffix}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="mt-6">

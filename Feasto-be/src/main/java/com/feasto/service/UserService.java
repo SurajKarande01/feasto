@@ -42,6 +42,11 @@ public class UserService {
     @Autowired
     private org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
 
+    /**
+     * Registers a new customer account.
+     * It checks email uniqueness across the system, maps registration details,
+     * encodes the password, saves the user, and sends a welcome notification.
+     */
     public UserDTO registerUser(UserRegistrationDTO registrationDTO) {
         String email = registrationDTO.getEmail();
         if (userRepository.existsByEmailIgnoreCase(email) || 
@@ -67,6 +72,9 @@ public class UserService {
         return mapper.toUserDTO(savedUser);
     }
 
+    /**
+     * Validates credentials and logs in the customer, returning their profile details.
+     */
     public UserDTO loginUser(String email, String password) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UnauthorizedException("Invalid credentials"));
@@ -74,18 +82,27 @@ public class UserService {
         return mapper.toUserDTO(user);
     }
 
+    /**
+     * Fetches a specific customer's profile by their unique ID.
+     */
     public UserDTO getUserById(Long id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
         return mapper.toUserDTO(user);
     }
 
+    /**
+     * Returns a list of all registered customers in the system.
+     */
     public List<UserDTO> getAllUsers() {
         return userRepository.findAll().stream()
                 .map(mapper::toUserDTO)
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Updates customer profile fields (such as name, phone number, or address coordinates).
+     */
     public UserDTO updateUser(Long id, UserDTO dto) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
@@ -104,6 +121,9 @@ public class UserService {
         return mapper.toUserDTO(savedUser);
     }
 
+    /**
+     * Deletes a customer account and cleans up their associated loyalty program record.
+     */
     public void deleteUser(Long id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));

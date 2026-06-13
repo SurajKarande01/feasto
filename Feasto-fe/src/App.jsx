@@ -34,6 +34,10 @@ import RestaurantDashboard from "./pages/restaurant/RestaurantDashboard";
 // Helpers — defined at module level so they are never re-created on re-renders
 // ---------------------------------------------------------------------------
 
+/**
+ * Utility function to inspect the browser local storage and deduce the user's role.
+ * Inspects matching tokens and profile payloads to return 'RESTAURANT_OWNER', 'DELIVERY_PARTNER', or 'CUSTOMER'.
+ */
 const getRoleFromLocalStorage = () => {
   try {
     const token = localStorage.getItem("token");
@@ -47,7 +51,10 @@ const getRoleFromLocalStorage = () => {
   return null;
 };
 
-/** Returns the correct <Navigate> element based on the persisted role. */
+/**
+ * Decides the correct initial page to redirect the user to when they open the root URL.
+ * Redirects guests to the /welcome page, and logged-in users to their respective dashboards.
+ */
 const getDefaultRoute = () => {
   const effectiveRole = getRoleFromLocalStorage();
   if (!effectiveRole) return <Navigate to="/welcome" />;
@@ -64,9 +71,8 @@ const getDefaultRoute = () => {
 };
 
 /**
- * ProtectedRoute — guards a route by role.
- * Must be defined outside App so React never unmounts its subtree on a
- * parent re-render.
+ * Route guard component that intercepts navigation request to protected URLs.
+ * Checks the user's role, permitting access to matching nested layouts or redirecting them back to login or error pages.
  */
 const ProtectedRoute = ({ children, allowedRole }) => {
   const effectiveRole = getRoleFromLocalStorage();
@@ -86,9 +92,9 @@ const ProtectedRoute = ({ children, allowedRole }) => {
 };
 
 /**
- * RouterBody — must be defined outside App so React preserves its state
- * (including child component state) across App re-renders.
- * It is placed inside <BrowserRouter> so useLocation() works.
+ * The core router manager component.
+ * Configures the Toast notification container, toggles the top navigation bar,
+ * and declares all nested protected public and role-specific dashboard page routes.
  */
 const RouterBody = () => {
   const location = useLocation();
@@ -139,9 +145,10 @@ const RouterBody = () => {
   );
 };
 
-// ---------------------------------------------------------------------------
-// App — just provides the router context
-// ---------------------------------------------------------------------------
+/**
+ * The main React Application root component.
+ * Provides the browser history context for the entire application.
+ */
 function App() {
   return (
     <BrowserRouter>

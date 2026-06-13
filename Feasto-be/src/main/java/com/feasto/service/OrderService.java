@@ -76,6 +76,11 @@ public class OrderService {
 
 	private static final double MAX_RATING = 5.0;
 
+	/**
+	 * Places a new order for a customer.
+	 * It fetches the user and restaurant, validates items and prices against the DB,
+	 * checks promo codes, calculates fees, saves the order, and alerts the restaurant.
+	 */
 	@CacheEvict(value = { "ordersByRestaurant", "ordersByUser", "ordersByDeliveryPartner",
 			"orderById" }, allEntries = true)
 	@Transactional
@@ -161,6 +166,10 @@ public class OrderService {
 	 * Proximity/geospatial logic is commented for future implementation.
 	 * Returns assigned OrderDTO or null if no available partner.
 	 */
+	/**
+	 * Automatically finds and assigns the best online delivery partner for an order
+	 * using a weighted score of geographical proximity (Haversine) and driver rating.
+	 */
 	@CacheEvict(value = { "ordersByRestaurant", "ordersByUser", "ordersByDeliveryPartner",
 			"orderById" }, allEntries = true)
 	@Transactional
@@ -240,6 +249,10 @@ public class OrderService {
 		return mapper.toOrderDTO(updatedOrder);
 	}
 
+	/**
+	 * Fetches a single order from the database by its unique identifier.
+	 * Utilizes caching to return fast responses for identical requests.
+	 */
 	@Transactional(readOnly = true)
 	@Cacheable(value = "orderById", key = "#id")
 	public OrderDTO getOrderById(Long id) {
@@ -248,6 +261,9 @@ public class OrderService {
 		return mapper.toOrderDTO(order);
 	}
 
+	/**
+	 * Retrieves the entire order history for a specific customer.
+	 */
 	@Transactional(readOnly = true)
 	@Cacheable(value = "ordersByUser", key = "#userId")
 	public List<OrderDTO> getOrdersByUserId(Long userId) {
@@ -256,6 +272,9 @@ public class OrderService {
 				.collect(Collectors.toList());
 	}
 
+	/**
+	 * Retrieves all orders placed with a specific restaurant.
+	 */
 	@Transactional(readOnly = true)
 	@Cacheable(value = "ordersByRestaurant", key = "#restaurantId")
 	public List<OrderDTO> getOrdersByRestaurantId(Long restaurantId) {
@@ -264,6 +283,9 @@ public class OrderService {
 				.collect(Collectors.toList());
 	}
 
+	/**
+	 * Paginated lookup of a restaurant's order logs, sorted from newest to oldest.
+	 */
 	@Transactional(readOnly = true)
 	@Cacheable(value = "ordersByRestaurant", key = "#restaurantId + '-' + #page + '-' + #limit")
 	public Page<OrderDTO> getOrdersByRestaurantId(Long restaurantId, int page, int limit) {
@@ -273,6 +295,9 @@ public class OrderService {
 		return orders.map(mapper::toOrderDTO);
 	}
 
+	/**
+	 * Paginated lookup of a restaurant's orders filtered by status (e.g. PREPARING).
+	 */
 	@Transactional(readOnly = true)
 	@Cacheable(value = "ordersByRestaurant", key = "#restaurantId + '-' + (#status != null ? #status.name() : 'ALL') + '-' + #page + '-' + #limit")
 	public Page<OrderDTO> getOrdersByRestaurantId(Long restaurantId, OrderStatus status, int page, int limit) {
@@ -286,6 +311,9 @@ public class OrderService {
 		return orders.map(mapper::toOrderDTO);
 	}
 
+	/**
+	 * Retrieves all delivery tasks assigned to a specific rider.
+	 */
 	@Transactional(readOnly = true)
 	@Cacheable(value = "ordersByDeliveryPartner", key = "#deliveryPartnerId", condition = "#deliveryPartnerId != null")
 	public List<OrderDTO> getOrdersByDeliveryPartnerId(Long deliveryPartnerId) {
@@ -294,6 +322,10 @@ public class OrderService {
 				.collect(Collectors.toList());
 	}
 
+	/**
+	 * Updates the status of an order, validates the state machine flow,
+	 * handles payments and rider availability updates upon delivery, and alerts the customer.
+	 */
 	@CacheEvict(value = { "ordersByRestaurant", "ordersByUser", "ordersByDeliveryPartner",
 			"orderById" }, allEntries = true)
 	@Transactional
@@ -354,6 +386,10 @@ public class OrderService {
 		return mapper.toOrderDTO(updatedOrder);
 	}
 
+	/**
+	 * Manually assigns a specific delivery rider to an order, marks the rider busy,
+	 * updates order status to ASSIGNED, and sends a notification.
+	 */
 	@CacheEvict(value = { "ordersByRestaurant", "ordersByUser", "ordersByDeliveryPartner",
 			"orderById" }, allEntries = true)
 	@Transactional
@@ -390,6 +426,9 @@ public class OrderService {
 		return mapper.toOrderDTO(updatedOrder);
 	}
 
+	/**
+	 * Handles a delivery rider accepting an assigned delivery task and alerts the user.
+	 */
 	@CacheEvict(value = { "ordersByRestaurant", "ordersByUser", "ordersByDeliveryPartner",
 			"orderById" }, allEntries = true)
 	@Transactional
@@ -415,6 +454,9 @@ public class OrderService {
 	 * ASSIGNED → OUT_FOR_DELIVERY
 	 * OUT_FOR_DELIVERY → DELIVERED
 	 * DELIVERED, CANCELLED, REJECTED → terminal (no further transitions)
+	 */
+	/**
+	 * Validates order state progression to prevent skipping stages or going backward.
 	 */
 	private void validateStatusTransition(OrderStatus current, OrderStatus next) {
 		if (current == null || next == null) return;

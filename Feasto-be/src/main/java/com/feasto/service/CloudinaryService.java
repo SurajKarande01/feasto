@@ -34,8 +34,12 @@ public class CloudinaryService {
     private final RestTemplate restTemplate = new RestTemplate();
 
     /**
-     * Upload image using signed parameters: api_key, timestamp, signature.
-     * This avoids requiring an unsigned preset on the account.
+    /**
+     * Uploads an image file to Cloudinary storage.
+     * What it does:
+     * 1. Constructs a multipart payload containing the file bytes and configurations.
+     * 2. Generates a secure signature hash based on upload options and the API secret.
+     * 3. Executes a POST request to Cloudinary's endpoint and retrieves the uploaded image URL and public ID.
      */
     public ImageUploadResult uploadImage(MultipartFile file, String publicIdPrefix) {
         if (file == null || file.isEmpty())
@@ -98,7 +102,11 @@ public class CloudinaryService {
         }
     }
 
-    // Delete by public_id using signed params
+    /**
+     * Deletes an image from Cloudinary using its unique public ID.
+     * Requires generating a signed API payload to authenticate the request.
+     * Returns true if Cloudinary responds with "ok".
+     */
     public boolean deleteImage(String publicId) {
         if (publicId == null || publicId.isBlank())
             return false;
@@ -138,6 +146,10 @@ public class CloudinaryService {
         }
     }
 
+    /**
+     * Computes the SHA-1 hexadecimal hash for signature parameters.
+     * This is required by Cloudinary to verify API requests and protect against tampering.
+     */
     private String sha1Hex(String input) {
         try {
             MessageDigest md = MessageDigest.getInstance("SHA-1");

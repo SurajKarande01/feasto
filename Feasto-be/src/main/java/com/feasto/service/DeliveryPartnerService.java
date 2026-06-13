@@ -49,6 +49,11 @@ public class DeliveryPartnerService {
     @Autowired
     private org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
 
+    /**
+     * Registers a new delivery rider in the platform.
+     * It validates that their email is unique, sets their default role, hashes their password,
+     * and initializes their default availability status.
+     */
     @Caching(evict = { @CacheEvict(value = "deliveryPartnersAll", allEntries = true),
             @CacheEvict(value = "deliveryPartnersAvailable", allEntries = true) })
     public DeliveryPartnerDTO registerDeliveryPartner(DeliveryPartnerDTO dto) {
@@ -70,6 +75,9 @@ public class DeliveryPartnerService {
         return mapper.toDeliveryPartnerDTO(saved);
     }
 
+    /**
+     * Finds a single delivery partner by their database ID, with caching support.
+     */
     @Cacheable(value = "deliveryPartnerById", key = "#id")
     public DeliveryPartnerDTO getDeliveryPartnerById(Long id) {
         DeliveryPartner partner = deliveryPartnerRepository.findById(id)
@@ -77,6 +85,9 @@ public class DeliveryPartnerService {
         return mapper.toDeliveryPartnerDTO(partner);
     }
 
+    /**
+     * Returns a list of all delivery partners registered on the platform.
+     */
     @Cacheable(value = "deliveryPartnersAll")
     public List<DeliveryPartnerDTO> getAllDeliveryPartners() {
         return deliveryPartnerRepository.findAll().stream()
@@ -84,6 +95,10 @@ public class DeliveryPartnerService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Updates whether a rider is online and ready for deliveries,
+     * and saves their current geographical coordinates.
+     */
     @Caching(evict = { @CacheEvict(value = "deliveryPartnersAll", allEntries = true),
             @CacheEvict(value = "deliveryPartnersAvailable", allEntries = true),
             @CacheEvict(value = "deliveryPartnerById", key = "#id") })
@@ -98,6 +113,9 @@ public class DeliveryPartnerService {
         return mapper.toDeliveryPartnerDTO(updated);
     }
 
+    /**
+     * Updates the delivery partner's profile information (name, vehicle details, or password).
+     */
     @Caching(evict = { @CacheEvict(value = "deliveryPartnersAll", allEntries = true),
             @CacheEvict(value = "deliveryPartnersAvailable", allEntries = true),
             @CacheEvict(value = "deliveryPartnerById", key = "#id") })
@@ -117,12 +135,18 @@ public class DeliveryPartnerService {
         return mapper.toDeliveryPartnerDTO(updated);
     }
 
+    /**
+     * Retrieves all riders who are currently online and available.
+     */
     public List<DeliveryPartnerDTO> getAvailableDeliveryPartners() {
         return deliveryPartnerRepository.findByAvailableTrue().stream()
                 .map(mapper::toDeliveryPartnerDTO)
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Authenticates a delivery partner and returns their profile details.
+     */
     public DeliveryPartnerDTO loginDeliveryPartner(String email, String password) {
         DeliveryPartner partner = deliveryPartnerRepository.findByEmailIgnoreCase(email)
                 .orElseThrow(() -> new UnauthorizedException("Invalid credentials"));
@@ -130,6 +154,10 @@ public class DeliveryPartnerService {
         return mapper.toDeliveryPartnerDTO(partner);
     }
 
+    /**
+     * Deletes a delivery partner from the system, removes references in assigned orders,
+     * and deletes their associated reviews.
+     */
     @Caching(evict = { @CacheEvict(value = "deliveryPartnersAll", allEntries = true),
             @CacheEvict(value = "deliveryPartnersAvailable", allEntries = true),
             @CacheEvict(value = "deliveryPartnerById", key = "#id") })

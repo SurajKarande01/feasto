@@ -1,4 +1,4 @@
-<h1 align="center">🍕 Feasto — Production-Grade Food Delivery Platform & Ecosystem</h1>
+<h1 align="center">🍕 Feasto — Production-Grade Food Order & Delivery Platform & Ecosystem</h1>
 
 <p align="center">
   A premium, decoupled multi-portal food delivery ecosystem connecting Customers, Restaurant Owners, and Delivery Partners in real-time. Built using Spring Boot 3.5.6 (Java 17), Hibernate, React 18, and Tailwind CSS v4.

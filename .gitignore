@@ -1,35 +1,67 @@
-# Dependencies
-node_modules/
-target/
-build/
-dist/
-dist-ssr/
+# =========================================================================
+# Feasto Workspace GitIgnore Configuration
+# =========================================================================
 
-# IDE files
+# --- Dependencies & Package Managers ---
+node_modules/
+**/node_modules/
+target/
+**/target/
+build/
+**/build/
+dist/
+**/dist/
+dist-ssr/
+**/dist-ssr/
+.mvn/wrapper/maven-wrapper.jar
+
+# --- Sensitive Environment & Configuration Files ---
+.env
+.env.local
+.env.development.local
+.env.production.local
+.env.test.local
+.env.*.local
+*.local
+
+# --- IDEs & Editors ---
+# VS Code
 .vscode/
+# IntelliJ IDEA
 .idea/
+*.iws
+*.iml
+*.ipr
+# Eclipse / Spring Tool Suite (STS)
 .settings/
 .project
 .classpath
 .factorypath
 .apt_generated
 .sts4-cache
-*.iws
-*.iml
-*.ipr
-*.suo
-*.sln
-*.sw?
-.DS_Store
+.springBeans
+# NetBeans
+/nbproject/private/
+/nbbuild/
+/nbdist/
+/.nb-gradle/
 
-# Logs
+# --- Logs & Temp Files ---
 *.log
-logs/
+**/logs/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
+lerna-debug.log*
 
-# Packages / Archives
+# --- System & Archive Files ---
+.DS_Store
+Thumbs.db
 *.zip
 *.tar.gz
+*.tmp
+*.bak
+
+# --- Tool Outputs ---
+graphify-out/

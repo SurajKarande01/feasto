@@ -5,14 +5,14 @@ import DeliveryMap from "../../components/delivery/DeliveryMap";
 
 const DeliveryDashboard = () => {
   const navigate = useNavigate();
-  const profile = useMemo(() => {
+  const [profile, setProfile] = useState(() => {
     try {
       const raw = localStorage.getItem("deliveryProfile");
       return raw ? JSON.parse(raw) : null;
     } catch {
       return null;
     }
-  }, []);
+  });
 
   const [online, setOnline] = useState(true);
   const [stats, setStats] = useState({ earningsToday: 0, completedToday: 0, activeCount: 0 });
@@ -130,10 +130,16 @@ const DeliveryDashboard = () => {
         return;
       }
       const url = `/delivery-partners/${id}/orders`;
-      const res = await apiClient.get(url);
+      const [res, profRes] = await Promise.all([
+        apiClient.get(url),
+        apiClient.get(`/delivery-partners/${id}`)
+      ]);
       const data = Array.isArray(res?.data) ? res.data : [];
       setActiveOrders(data);
       setStats((s) => ({ ...s, activeCount: data.length }));
+      if (profRes.data) {
+        setProfile(profRes.data);
+      }
     } catch (e) {
       const msg = e?.request?.responseText || e.message || "Failed to load active orders";
       setOrdersError(msg);
@@ -290,7 +296,7 @@ const DeliveryDashboard = () => {
           </div>
           <div className="bg-slate-50/50 border border-slate-100 rounded-2xl p-5 shadow-[0_8px_30px_rgba(0,0,0,0.01)]">
             <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">My Rating</div>
-            <div className="text-3xl font-black text-slate-950 mt-1.5">{profile?.rating ?? "—"}</div>
+            <div className="text-3xl font-black text-slate-950 mt-1.5">{profile?.averageRating != null ? profile.averageRating.toFixed(1) : "—"}</div>
           </div>
         </div>
 

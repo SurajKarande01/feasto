@@ -43,4 +43,9 @@ public class ReviewController {
         // Same as regular review, assuming orderId links to quick commerce order
         return ResponseEntity.ok(reviewService.submitReview(dto));
     }
+
+    @GetMapping("/delivery-partner/{partnerId}")
+    public ResponseEntity<List<ReviewDTO>> getReviewsByDeliveryPartnerId(@PathVariable Long partnerId) {
+        return ResponseEntity.ok(reviewService.getReviewsByDeliveryPartnerId(partnerId));
+    }
 }

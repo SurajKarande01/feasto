@@ -108,4 +108,13 @@ public class ReviewService {
                                 .orElseThrow(() -> new ResourceNotFoundException("Review not found with id: " + id));
                 return mapper.toReviewDTO(review);
         }
+
+        public List<ReviewDTO> getReviewsByDeliveryPartnerId(Long deliveryPartnerId) {
+                deliveryPartnerRepository.findById(deliveryPartnerId)
+                                .orElseThrow(() -> new ResourceNotFoundException(
+                                                "Delivery Partner not found with id: " + deliveryPartnerId));
+                return reviewRepository.findByDeliveryPartner_DeliveryPartnerId(deliveryPartnerId).stream()
+                                .map(mapper::toReviewDTO)
+                                .collect(Collectors.toList());
+        }
 }

@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getDeliveryPartnerById, getDeliveryNotifications, markAllDeliveryNotificationsRead } from "../../services/api/deliveryService";
+import { getDeliveryPartnerById, getDeliveryNotifications, markAllDeliveryNotificationsRead, getDeliveryPartnerReviews } from "../../services/api/deliveryService";
 import { toast } from "react-toastify";
+import { Star } from "lucide-react";
 
 const getPartnerId = () => {
   try {
@@ -16,6 +17,7 @@ const DeliveryProfile = () => {
   const navigate = useNavigate();
   const [profile, setProfile] = useState(null);
   const [notifications, setNotifications] = useState([]);
+  const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("profile");
 
@@ -28,6 +30,7 @@ const DeliveryProfile = () => {
       if (raw) setProfile(JSON.parse(raw));
       try { const apiProfile = await getDeliveryPartnerById(id); setProfile(apiProfile); } catch { /* use localStorage */ }
       try { const notifs = await getDeliveryNotifications(id); setNotifications(Array.isArray(notifs) ? notifs : []); } catch { /* no notifs */ }
+      try { const revs = await getDeliveryPartnerReviews(id); setReviews(Array.isArray(revs) ? revs : []); } catch { /* no reviews */ }
     } catch { /* ignore */ }
     finally { setLoading(false); }
   }, []);
@@ -128,6 +131,16 @@ const DeliveryProfile = () => {
         >
           Notifications {notifications.length > 0 && `(${notifications.length})`}
         </button>
+        <button 
+          onClick={() => setActiveTab("reviews")} 
+          className={`whitespace-nowrap px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 border cursor-pointer ${
+            activeTab === "reviews" 
+              ? "bg-slate-950 text-white border-slate-950 shadow-sm" 
+              : "bg-white text-slate-600 border-slate-200/80 hover:bg-slate-50 hover:text-slate-950"
+          }`}
+        >
+          Reviews
+        </button>
       </div>
 
       {activeTab === "profile" && (
@@ -213,6 +226,46 @@ const DeliveryProfile = () => {
               ))}
             </div>
           )}
+        </div>
+      )}
+
+      {activeTab === "reviews" && (
+        <div className="bg-white rounded-[32px] border border-slate-100 p-6 shadow-[0_8px_30px_rgba(0,0,0,0.01)]">
+          <h2 className="text-sm font-black text-slate-900 uppercase tracking-wider mb-6">Customer Reviews</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {reviews.length === 0 ? (
+                  <div className="col-span-full py-16 text-center text-slate-400 border border-dashed border-slate-200 rounded-3xl">
+                      <Star className="mx-auto mb-3 opacity-20" size={40}/>
+                      <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">No reviews yet</p>
+                      <p className="text-[10px] mt-1">Complete deliveries to earn your first rating!</p>
+                  </div>
+              ) : (
+                  reviews.map(review => (
+                      <div key={review.reviewId} className="bg-slate-50/50 p-5 rounded-2xl border border-slate-100 shadow-sm">
+                          <div className="flex justify-between items-start mb-3">
+                              <div>
+                                  <div className="flex gap-1 mb-1">
+                                      {[1,2,3,4,5].map(s => (
+                                          <Star key={s} size={14} className={s <= review.rating ? "fill-amber-400 text-amber-400" : "fill-slate-200 text-slate-300"} />
+                                      ))}
+                                  </div>
+                                  <div className="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-1">
+                                      {review.reviewTime ? new Date(review.reviewTime).toLocaleDateString() : 'Recent'}
+                                  </div>
+                              </div>
+                              {review.orderId && (
+                                <div className="text-[9px] bg-white text-slate-500 font-bold px-2 py-1 rounded-lg border border-slate-100 shadow-sm">
+                                    Order #{review.orderId}
+                                </div>
+                              )}
+                          </div>
+                          <p className="text-xs text-slate-700 font-medium leading-relaxed italic">
+                              "{review.comment || 'No comment provided'}"
+                          </p>
+                      </div>
+                  ))
+              )}
+          </div>
         </div>
       )}
     </div>

@@ -82,3 +82,12 @@ export const markAllDeliveryNotificationsRead = async (partnerId) => {
   const res = await apiClient.post(`/notifications/DELIVERY_PARTNER/${partnerId}/mark-all-read`);
   return res.data;
 };
+
+/**
+ * Get reviews for a delivery partner.
+ * GET /api/reviews/delivery-partner/{id}
+ */
+export const getDeliveryPartnerReviews = async (partnerId) => {
+  const res = await apiClient.get(`/reviews/delivery-partner/${partnerId}`);
+  return res.data;
+};

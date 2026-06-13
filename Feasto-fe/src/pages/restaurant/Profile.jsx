@@ -198,6 +198,7 @@ const RestaurantProfile = () => {
 
   const [restaurant, setRestaurant] = useState(null);
   const [menuItems, setMenuItems] = useState([]);
+  const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -215,12 +216,14 @@ const RestaurantProfile = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const [resDetails, resMenu] = await Promise.all([
+        const [resDetails, resMenu, resReviews] = await Promise.all([
           apiClient.get(`/restaurants/${restaurantId}`),
-          apiClient.get(`/restaurants/${restaurantId}/menu`)
+          apiClient.get(`/restaurants/${restaurantId}/menu`),
+          apiClient.get(`/reviews/restaurant/${restaurantId}`)
         ]);
         setRestaurant(resDetails.data);
         setMenuItems(Array.isArray(resMenu.data) ? resMenu.data : []);
+        setReviews(Array.isArray(resReviews.data) ? resReviews.data : []);
       } catch (err) {
         console.error("Error fetching data:", err);
         setError("Could not connect to Backend. Is Spring Boot running on Port 8080?");
@@ -414,6 +417,39 @@ const RestaurantProfile = () => {
                         ) : (
                             filteredMenuItems.map((item) => (
                                 <MenuCard key={item.menuItemId} item={item} onDelete={handleDeleteItem} />
+                            ))
+                        )}
+                    </div>
+                ) : activeTab === 'reviews' ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {reviews.length === 0 ? (
+                            <div className="col-span-full py-20 text-center text-slate-400 bg-slate-50/50 rounded-3xl border border-slate-100">
+                                <Star className="mx-auto mb-4 opacity-20" size={54}/>
+                                <p className="text-sm font-semibold text-slate-600">No reviews yet</p>
+                                <p className="text-xs mt-1">Deliver great food to get your first review!</p>
+                            </div>
+                        ) : (
+                            reviews.map(review => (
+                                <div key={review.reviewId} className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm hover:shadow-md transition-all">
+                                    <div className="flex justify-between items-start mb-4">
+                                        <div>
+                                            <div className="flex gap-1 mb-1">
+                                                {[1,2,3,4,5].map(s => (
+                                                    <Star key={s} size={14} className={s <= review.rating ? "fill-amber-400 text-amber-400" : "fill-slate-100 text-slate-200"} />
+                                                ))}
+                                            </div>
+                                            <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">
+                                                {review.reviewTime ? new Date(review.reviewTime).toLocaleDateString() : 'Recent'}
+                                            </div>
+                                        </div>
+                                        <div className="text-[10px] bg-slate-50 text-slate-500 font-bold px-2 py-1 rounded-lg border border-slate-100">
+                                            Order #{review.orderId || 'N/A'}
+                                        </div>
+                                    </div>
+                                    <p className="text-sm text-slate-700 font-medium leading-relaxed italic">
+                                        "{review.comment || 'No comment provided'}"
+                                    </p>
+                                </div>
                             ))
                         )}
                     </div>

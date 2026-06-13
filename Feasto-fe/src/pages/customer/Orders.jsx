@@ -36,8 +36,10 @@ const CustomerOrders = () => {
   const [error, setError] = useState("");
   const [filter, setFilter] = useState("ALL");
   const [reviewOrder, setReviewOrder] = useState(null);
-  const [reviewRating, setReviewRating] = useState(5);
-  const [reviewComment, setReviewComment] = useState("");
+  const [restaurantRating, setRestaurantRating] = useState(5);
+  const [restaurantComment, setRestaurantComment] = useState("");
+  const [riderRating, setRiderRating] = useState(5);
+  const [riderComment, setRiderComment] = useState("");
   const [reviewSubmitting, setReviewSubmitting] = useState(false);
 
   const fetchOrders = useCallback(async () => {
@@ -65,8 +67,16 @@ const CustomerOrders = () => {
     if (!reviewOrder) return;
     setReviewSubmitting(true);
     try {
-      await submitReview({ orderId: reviewOrder.orderId, userId: reviewOrder.userId, restaurantId: reviewOrder.restaurantId, rating: reviewRating, comment: reviewComment });
-      toast.success("Review submitted!"); setReviewOrder(null); setReviewRating(5); setReviewComment("");
+      const promises = [];
+      if (reviewOrder.restaurantId) {
+        promises.push(submitReview({ orderId: reviewOrder.orderId, userId: reviewOrder.userId, restaurantId: reviewOrder.restaurantId, rating: restaurantRating, comment: restaurantComment }));
+      }
+      if (reviewOrder.deliveryPartnerId) {
+        promises.push(submitReview({ orderId: reviewOrder.orderId, userId: reviewOrder.userId, deliveryPartnerId: reviewOrder.deliveryPartnerId, rating: riderRating, comment: riderComment }));
+      }
+      await Promise.all(promises);
+      toast.success("Reviews submitted!"); 
+      setReviewOrder(null); setRestaurantRating(5); setRestaurantComment(""); setRiderRating(5); setRiderComment("");
     } catch (err) { toast.error(err?.response?.data?.error || "Failed to submit review"); }
     finally { setReviewSubmitting(false); }
   };
@@ -220,7 +230,7 @@ const CustomerOrders = () => {
                       )}
                       {o.orderStatus === "DELIVERED" && (
                         <button 
-                          onClick={() => { setReviewOrder(o); setReviewRating(5); setReviewComment(""); }} 
+                          onClick={() => { setReviewOrder(o); setRestaurantRating(5); setRestaurantComment(""); setRiderRating(5); setRiderComment(""); }} 
                           className="px-5 py-2 bg-amber-50 hover:bg-amber-100 text-amber-700 text-xs font-bold rounded-xl border border-amber-200/40 transition-all cursor-pointer"
                         >
                           ★ Rate & Review
@@ -251,51 +261,83 @@ const CustomerOrders = () => {
       <Footer />
 
       {reviewOrder && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 backdrop-blur-sm overflow-y-auto pt-20 pb-10">
           <div className="absolute inset-0" onClick={() => setReviewOrder(null)} />
-          <div className="relative bg-white rounded-[32px] border border-slate-100 shadow-2xl p-6 w-full max-w-md mx-4">
-            <div className="flex items-center justify-between border-b border-slate-50 pb-4 mb-4">
+          <div className="relative bg-white rounded-[32px] border border-slate-100 shadow-2xl p-6 w-full max-w-md mx-4 my-auto max-h-[80vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-slate-50 pb-4 mb-4 sticky top-0 bg-white z-10">
               <div>
                 <span className="text-[10px] font-extrabold text-rose-500 uppercase tracking-widest block mb-0.5">Feedback</span>
                 <h3 className="text-lg font-black text-slate-900 tracking-tight">Rate Order #{reviewOrder.orderId}</h3>
               </div>
               <button 
                 onClick={() => setReviewOrder(null)} 
-                className="p-1.5 rounded-lg hover:bg-slate-50 border border-slate-100 text-slate-500"
+                className="p-1.5 rounded-lg hover:bg-slate-50 border border-slate-100 text-slate-500 cursor-pointer"
               >
                 ✕
               </button>
             </div>
             
-            <div className="mb-4">
-              <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Select Rating</label>
-              <div className="flex gap-1">
-                {[1,2,3,4,5].map(s => (
-                  <button 
-                    key={s} 
-                    onClick={() => setReviewRating(s)} 
-                    className={`text-3xl hover:scale-110 active:scale-95 transition-all duration-150 cursor-pointer ${
-                      s <= reviewRating ? "text-amber-400" : "text-slate-200"
-                    }`}
-                  >
-                    ★
-                  </button>
-                ))}
+            {/* Restaurant Rating Section */}
+            <div className="mb-4 bg-slate-50/50 p-4 rounded-2xl border border-slate-100">
+              <h4 className="text-sm font-bold text-slate-800 mb-3 flex items-center gap-2">🍽️ Rate Restaurant</h4>
+              <div className="mb-3">
+                <div className="flex gap-1">
+                  {[1,2,3,4,5].map(s => (
+                    <button 
+                      key={s} 
+                      onClick={() => setRestaurantRating(s)} 
+                      className={`text-2xl hover:scale-110 active:scale-95 transition-all duration-150 cursor-pointer ${
+                        s <= restaurantRating ? "text-amber-400" : "text-slate-200"
+                      }`}
+                    >
+                      ★
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <textarea 
+                  value={restaurantComment} 
+                  onChange={e => setRestaurantComment(e.target.value)} 
+                  rows={2} 
+                  placeholder="How was the food?" 
+                  className="w-full p-3 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-rose-500 focus:ring-4 focus:ring-rose-500/10 transition-all shadow-sm resize-none" 
+                />
               </div>
             </div>
 
-            <div className="mb-6">
-              <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Comment</label>
-              <textarea 
-                value={reviewComment} 
-                onChange={e => setReviewComment(e.target.value)} 
-                rows={3} 
-                placeholder="How was the food and packaging? Share your experience..." 
-                className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-rose-500 focus:ring-4 focus:ring-rose-500/10 transition-all shadow-inner resize-none" 
-              />
-            </div>
+            {/* Rider Rating Section */}
+            {reviewOrder.deliveryPartnerId && (
+              <div className="mb-6 bg-slate-50/50 p-4 rounded-2xl border border-slate-100">
+                <h4 className="text-sm font-bold text-slate-800 mb-3 flex items-center gap-2">🚴 Rate Delivery Partner</h4>
+                <div className="mb-3">
+                  <div className="flex gap-1">
+                    {[1,2,3,4,5].map(s => (
+                      <button 
+                        key={s} 
+                        onClick={() => setRiderRating(s)} 
+                        className={`text-2xl hover:scale-110 active:scale-95 transition-all duration-150 cursor-pointer ${
+                          s <= riderRating ? "text-amber-400" : "text-slate-200"
+                        }`}
+                      >
+                        ★
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <textarea 
+                    value={riderComment} 
+                    onChange={e => setRiderComment(e.target.value)} 
+                    rows={2} 
+                    placeholder="How was the delivery experience?" 
+                    className="w-full p-3 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-rose-500 focus:ring-4 focus:ring-rose-500/10 transition-all shadow-sm resize-none" 
+                  />
+                </div>
+              </div>
+            )}
 
-            <div className="flex gap-3 border-t border-slate-50 pt-5">
+            <div className="flex gap-3 border-t border-slate-50 pt-5 mt-2">
               <button 
                 onClick={() => setReviewOrder(null)} 
                 className="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold transition-all cursor-pointer text-center"

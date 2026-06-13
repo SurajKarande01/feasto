@@ -71,6 +71,8 @@ public class Order {
 
     private Double tipAmount;
 
+    private Double deliveryFee;
+
     @Embedded
     private Address deliveryAddress;
 
@@ -154,6 +156,14 @@ public class Order {
 		this.tipAmount = tipAmount;
 	}
 
+	public Double getDeliveryFee() {
+		return deliveryFee;
+	}
+
+	public void setDeliveryFee(Double deliveryFee) {
+		this.deliveryFee = deliveryFee;
+	}
+
 	public Address getDeliveryAddress() {
 		return deliveryAddress;
 	}
@@ -185,7 +195,4 @@ public class Order {
 	public void setOrderItems(List<OrderItem> orderItems) {
 		this.orderItems = orderItems;
 	}
-
-    
-    
 }

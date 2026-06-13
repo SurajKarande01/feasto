@@ -61,9 +61,10 @@ const OrderDelivery = () => {
         const pid = getPartnerId();
         if (pid) {
           try {
-            await apiClient.put(`/delivery-partners/${pid}/availability`, {
-              available: true,
-              currentLocation: { latitude: loc.lat, longitude: loc.lng },
+            await apiClient.post(`/delivery-partners/location`, {
+              deliveryPartnerId: pid,
+              latitude: loc.lat,
+              longitude: loc.lng,
             });
           } catch { /* ignore */ }
         }
@@ -169,7 +170,7 @@ const OrderDelivery = () => {
               </div>
               <div className="flex justify-between items-center py-2.5 border-b border-slate-50">
                 <span className="font-semibold text-slate-400">Earnings Payout</span>
-                <span className="font-black text-rose-500">₹{Number(order.totalAmount || 0).toFixed(2)}</span>
+                <span className="font-black text-rose-500">₹{Number((order.deliveryFee != null ? order.deliveryFee : (order.totalAmount > 0 ? 30 : 0)) + (order.tipAmount || 0)).toFixed(2)}</span>
               </div>
               <div className="flex justify-between items-center py-2.5 border-b border-slate-50">
                 <span className="font-semibold text-slate-400">Customer</span>

@@ -98,6 +98,17 @@ public class RestaurantController {
         return ResponseEntity.ok(restaurantService.getRestaurantById(id));
     }
 
+    @PreAuthorize("hasRole('RESTAURANT_OWNER')")
+    @PutMapping(path = "/{restaurantId}/profile", consumes = { "multipart/form-data" })
+    public ResponseEntity<RestaurantDTO> updateRestaurantProfile(
+            @PathVariable Long restaurantId,
+            @RequestParam("restaurant") String restaurantJson,
+            @RequestParam(value = "image", required = false) MultipartFile image) throws Exception {
+        ObjectMapper mapper = new ObjectMapper();
+        RestaurantDTO dto = mapper.readValue(restaurantJson, RestaurantDTO.class);
+        return ResponseEntity.ok(restaurantService.updateRestaurant(restaurantId, dto, image));
+    }
+
     // List all active restaurants
     @GetMapping
     public ResponseEntity<List<RestaurantDTO>> getAllRestaurants() {
@@ -234,4 +245,10 @@ public class RestaurantController {
         return ResponseEntity.ok(restaurantService.getRestaurantAnalytics(restaurantId));
     }
 
+    @PreAuthorize("hasAnyRole('RESTAURANT_OWNER', 'ADMIN')")
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteRestaurant(@PathVariable Long id) {
+        restaurantService.deleteRestaurant(id);
+        return ResponseEntity.noContent().build();
+    }
 }

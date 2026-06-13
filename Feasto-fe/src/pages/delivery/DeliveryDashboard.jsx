@@ -1,6 +1,6 @@
 import apiClient from "../../services/api/apiClient";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import DeliveryMap from "../../components/delivery/DeliveryMap";
 
 const DeliveryDashboard = () => {
@@ -14,7 +14,7 @@ const DeliveryDashboard = () => {
     }
   });
 
-  const [online, setOnline] = useState(true);
+  const [online, setOnline] = useState(profile?.available ?? true);
   const [stats, setStats] = useState({ earningsToday: 0, completedToday: 0, activeCount: 0 });
   const [activeOrders, setActiveOrders] = useState([]);
   const [ordersLoading, setOrdersLoading] = useState(false);
@@ -31,7 +31,7 @@ const DeliveryDashboard = () => {
         if (diff >= 0 && diff < 7) {
           const idx = (dayOfWeek - diff + 7) % 7;
           const monIdx = idx === 0 ? 6 : idx - 1;
-          result[monIdx] += (o.totalAmount || 0);
+          result[monIdx] += (o.deliveryFee != null ? o.deliveryFee : (o.totalAmount > 0 ? 30 : 0)) + (o.tipAmount || 0);
         }
       } catch { /* ignore */ }
     });
@@ -139,6 +139,9 @@ const DeliveryDashboard = () => {
       setStats((s) => ({ ...s, activeCount: data.length }));
       if (profRes.data) {
         setProfile(profRes.data);
+        if (profRes.data.available !== undefined) {
+          setOnline(profRes.data.available);
+        }
       }
     } catch (e) {
       const msg = e?.request?.responseText || e.message || "Failed to load active orders";
@@ -169,15 +172,25 @@ const DeliveryDashboard = () => {
         if (loc.latitude && loc.longitude) {
           setRiderPosition({ lat: loc.latitude, lng: loc.longitude });
           try {
-            await apiClient.put(`/delivery-partners/${id}/availability`, {
-              available: true,
-              currentLocation: { latitude: loc.latitude, longitude: loc.longitude },
+            await apiClient.post(`/delivery-partners/location`, {
+              deliveryPartnerId: id,
+              latitude: loc.latitude,
+              longitude: loc.longitude,
             });
-          } catch { console.debug("availability update failed"); }
+          } catch { console.debug("location broadcast failed"); }
         }
       }, 5000);
     } catch {
       setOrdersError("Failed to mark as out for delivery");
+    }
+  };
+
+  const handleMarkDelivered = async (orderId) => {
+    try {
+      await apiClient.put(`/orders/${orderId}/status`, null, { params: { orderStatus: "DELIVERED" } });
+      await loadActiveOrders();
+    } catch {
+      setOrdersError("Failed to mark as delivered");
     }
   };
 
@@ -200,7 +213,7 @@ const DeliveryDashboard = () => {
       try { return new Date(o.orderTime).toDateString() === today; } catch { return false; }
     });
     const delivered = todayOrders.filter(o => o.orderStatus === "DELIVERED");
-    const earnings = delivered.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
+    const earnings = delivered.reduce((sum, o) => sum + (o.deliveryFee != null ? o.deliveryFee : (o.totalAmount > 0 ? 30 : 0)) + (o.tipAmount || 0), 0);
     const active = activeOrders.filter(o => !["DELIVERED","CANCELLED","REJECTED"].includes(o.orderStatus));
     setStats({ earningsToday: Math.round(earnings), completedToday: delivered.length, activeCount: active.length });
   }, [activeOrders]);
@@ -225,11 +238,12 @@ const DeliveryDashboard = () => {
           if (loc.latitude && loc.longitude) {
             setRiderPosition({ lat: loc.latitude, lng: loc.longitude });
             try {
-              await apiClient.put(`/delivery-partners/${id}/availability`, {
-                available: true,
-                currentLocation: { latitude: loc.latitude, longitude: loc.longitude },
+              await apiClient.post(`/delivery-partners/location`, {
+                deliveryPartnerId: id,
+                latitude: loc.latitude,
+                longitude: loc.longitude,
               });
-            } catch { console.debug("availability update failed"); }
+            } catch { console.debug("location broadcast failed"); }
           }
         }, 5000);
       })();
@@ -328,7 +342,7 @@ const DeliveryDashboard = () => {
             )}
 
             <div className="divide-y divide-slate-50 mt-2">
-              {activeOrders.map((o) => {
+              {activeOrders.filter(o => !["DELIVERED", "CANCELLED", "REJECTED"].includes(o.orderStatus)).map((o) => {
                 const itemsCount = Array.isArray(o?.orderItems) ? o.orderItems.reduce((acc, it) => acc + (it?.quantity || 0), 0) : 0;
                 const addressLine = o?.deliveryAddress ? `${o.deliveryAddress.street || ""}, ${o.deliveryAddress.city || ""}`.trim() : "-";
                 const dest = o?.deliveryAddress?.latitude && o?.deliveryAddress?.longitude ? { lat: o.deliveryAddress.latitude, lng: o.deliveryAddress.longitude } : null;
@@ -337,7 +351,7 @@ const DeliveryDashboard = () => {
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                       <div>
                         <div className="font-extrabold text-slate-900 text-sm">
-                          Order #{o.orderId} • <span className="text-rose-500 font-black">₹{Number(o.totalAmount || 0).toFixed(2)}</span>
+                          Order #{o.orderId} • <span className="text-rose-500 font-black">₹{Number((o.deliveryFee != null ? o.deliveryFee : (o.totalAmount > 0 ? 30 : 0)) + (o.tipAmount || 0)).toFixed(2)}</span>
                         </div>
                         <div className="text-xs text-slate-500 font-medium mt-1">Items {itemsCount} • Destination: {addressLine}</div>
                         <div className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mt-1.5">User #{o.userId} • Rest #{o.restaurantId}</div>
@@ -355,18 +369,26 @@ const DeliveryDashboard = () => {
                         </span>
 
                         {o.orderStatus === "OUT_FOR_DELIVERY" && dest && (
-                          <label className="inline-flex items-center cursor-pointer select-none">
-                            <input
-                              type="checkbox"
-                              className="sr-only peer"
-                              checked={!!mapOpen[o.orderId]}
-                              onChange={() => toggleMap(o.orderId)}
-                            />
-                            <div className="w-9 h-5.5 bg-slate-200 rounded-full relative transition-colors peer-checked:bg-rose-500">
-                              <div className="absolute top-0.5 left-0.5 h-4.5 w-4.5 bg-white rounded-full shadow transition-transform peer-checked:translate-x-3.5" />
-                            </div>
-                            <span className="ml-2 text-xs font-bold text-slate-500">{mapOpen[o.orderId] ? "Map active" : "View Map"}</span>
-                          </label>
+                          <div className="flex items-center gap-3">
+                            <label className="inline-flex items-center cursor-pointer select-none">
+                              <input
+                                type="checkbox"
+                                className="sr-only peer"
+                                checked={!!mapOpen[o.orderId]}
+                                onChange={() => toggleMap(o.orderId)}
+                              />
+                              <div className="w-9 h-5.5 bg-slate-200 rounded-full relative transition-colors peer-checked:bg-rose-500">
+                                <div className="absolute top-0.5 left-0.5 h-4.5 w-4.5 bg-white rounded-full shadow transition-transform peer-checked:translate-x-3.5" />
+                              </div>
+                              <span className="ml-2 text-xs font-bold text-slate-500">{mapOpen[o.orderId] ? "Map active" : "View Map"}</span>
+                            </label>
+                            <button 
+                              onClick={() => handleMarkDelivered(o.orderId)} 
+                              className="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-600 active:scale-98 text-white text-[10px] font-extrabold rounded-xl transition-all duration-200 shadow-md shadow-emerald-500/20 cursor-pointer"
+                            >
+                              Delivered
+                            </button>
+                          </div>
                         )}
                         {o.orderStatus !== "OUT_FOR_DELIVERY" && o.orderStatus !== "DELIVERED" && (
                           <button 
@@ -376,6 +398,12 @@ const DeliveryDashboard = () => {
                             Out for delivery
                           </button>
                         )}
+                        <Link 
+                          to={`/order-delivery/${o.orderId}`}
+                          className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 active:scale-98 text-slate-700 text-[10px] font-bold rounded-xl transition-all duration-200 shadow-sm cursor-pointer ml-1"
+                        >
+                          Details
+                        </Link>
                       </div>
                     </div>
 
@@ -388,7 +416,7 @@ const DeliveryDashboard = () => {
                 );
               })}
 
-              {!activeOrders.length && !ordersLoading && (
+              {activeOrders.filter(o => !["DELIVERED", "CANCELLED", "REJECTED"].includes(o.orderStatus)).length === 0 && !ordersLoading && (
                 <div className="py-12 text-center text-slate-400 text-xs font-semibold">No active orders assigned to you.</div>
               )}
             </div>

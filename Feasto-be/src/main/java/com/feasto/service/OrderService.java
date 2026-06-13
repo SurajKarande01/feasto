@@ -133,6 +133,7 @@ public class OrderService {
 
 		order.setDiscountAmount(discountAmount);
 		order.setTipAmount(tipAmount);
+		order.setDeliveryFee(deliveryCharge);
 		order.setTotalAmount(expectedTotal);
 		order.setOrderStatus(OrderStatus.PLACED);
 

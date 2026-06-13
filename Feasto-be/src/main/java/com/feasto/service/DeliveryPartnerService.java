@@ -20,6 +20,10 @@ import com.feasto.mapper.CustomMapper;
 import com.feasto.repository.DeliveryPartnerRepository;
 import com.feasto.repository.UserRepository;
 import com.feasto.repository.RestaurantRepository;
+import com.feasto.repository.OrderRepository;
+import com.feasto.repository.ReviewRepository;
+import com.feasto.entity.Order;
+import com.feasto.entity.Review;
 
 @Service
 public class DeliveryPartnerService {
@@ -32,6 +36,12 @@ public class DeliveryPartnerService {
 
     @Autowired
     private RestaurantRepository restaurantRepository;
+
+    @Autowired
+    private OrderRepository orderRepository;
+
+    @Autowired
+    private ReviewRepository reviewRepository;
 
     @Autowired
     private CustomMapper mapper;
@@ -51,6 +61,9 @@ public class DeliveryPartnerService {
         DeliveryPartner partner = mapper.toDeliveryPartner(dto);
         if (partner.getRole() == null) {
             partner.setRole(Role.DELIVERY_PARTNER);
+        }
+        if (partner.getAvailable() == null) {
+            partner.setAvailable(false);
         }
         partner.setPassword(passwordEncoder.encode(partner.getPassword()));
         DeliveryPartner saved = deliveryPartnerRepository.save(partner);
@@ -85,6 +98,25 @@ public class DeliveryPartnerService {
         return mapper.toDeliveryPartnerDTO(updated);
     }
 
+    @Caching(evict = { @CacheEvict(value = "deliveryPartnersAll", allEntries = true),
+            @CacheEvict(value = "deliveryPartnersAvailable", allEntries = true),
+            @CacheEvict(value = "deliveryPartnerById", key = "#id") })
+    public DeliveryPartnerDTO updateDeliveryPartner(Long id, DeliveryPartnerDTO dto) {
+        DeliveryPartner partner = deliveryPartnerRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Delivery Partner not found with id: " + id));
+        if (dto.getName() != null) partner.setName(dto.getName());
+        if (dto.getPhoneNumber() != null) partner.setPhoneNumber(dto.getPhoneNumber());
+        if (dto.getVehicleDetails() != null) partner.setVehicleDetails(dto.getVehicleDetails());
+        if (dto.getVehicleType() != null) partner.setVehicleType(dto.getVehicleType());
+        if (dto.getCurrentLocation() != null) partner.setCurrentLocation(dto.getCurrentLocation());
+        if (dto.getAvailable() != null) partner.setAvailable(dto.getAvailable());
+        if (dto.getPassword() != null && !dto.getPassword().trim().isEmpty()) {
+            partner.setPassword(passwordEncoder.encode(dto.getPassword()));
+        }
+        DeliveryPartner updated = deliveryPartnerRepository.save(partner);
+        return mapper.toDeliveryPartnerDTO(updated);
+    }
+
     public List<DeliveryPartnerDTO> getAvailableDeliveryPartners() {
         return deliveryPartnerRepository.findByAvailableTrue().stream()
                 .map(mapper::toDeliveryPartnerDTO)
@@ -96,5 +128,26 @@ public class DeliveryPartnerService {
                 .orElseThrow(() -> new UnauthorizedException("Invalid credentials"));
         // Password is already verified by AuthenticationManager; just return the profile.
         return mapper.toDeliveryPartnerDTO(partner);
+    }
+
+    @Caching(evict = { @CacheEvict(value = "deliveryPartnersAll", allEntries = true),
+            @CacheEvict(value = "deliveryPartnersAvailable", allEntries = true),
+            @CacheEvict(value = "deliveryPartnerById", key = "#id") })
+    public void deleteDeliveryPartner(Long id) {
+        DeliveryPartner partner = deliveryPartnerRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Delivery Partner not found with id: " + id));
+
+        // Unlink orders
+        List<Order> deliveries = orderRepository.findByDeliveryPartner_DeliveryPartnerId(id);
+        for (Order o : deliveries) {
+            o.setDeliveryPartner(null);
+        }
+        orderRepository.saveAll(deliveries);
+
+        // Delete reviews
+        List<Review> reviews = reviewRepository.findByDeliveryPartner_DeliveryPartnerId(id);
+        reviewRepository.deleteAll(reviews);
+
+        deliveryPartnerRepository.delete(partner);
     }
 }

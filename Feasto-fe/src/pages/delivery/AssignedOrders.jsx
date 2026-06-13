@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import apiClient from "../../services/api/apiClient";
 
@@ -127,7 +128,7 @@ const AssignedOrders = () => {
                   </div>
                   <div>
                     <span className="text-slate-400 block text-[9px] uppercase tracking-wider mb-1">Total Payout</span>
-                    <span className="text-slate-800 text-sm font-black text-rose-500">₹{Number(o.totalAmount || 0).toFixed(2)}</span>
+                    <span className="text-slate-800 text-sm font-black text-rose-500">₹{Number((o.deliveryFee != null ? o.deliveryFee : (o.totalAmount > 0 ? 30 : 0)) + (o.tipAmount || 0)).toFixed(2)}</span>
                   </div>
                   <div>
                     <span className="text-slate-400 block text-[9px] uppercase tracking-wider mb-1">Delivery Address</span>
@@ -152,6 +153,12 @@ const AssignedOrders = () => {
                       Mark Delivered
                     </button>
                   )}
+                  <Link 
+                    to={`/order-delivery/${o.orderId}`}
+                    className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 active:scale-98 text-slate-700 text-xs font-bold rounded-xl transition-all duration-200 shadow-sm cursor-pointer ml-auto"
+                  >
+                    View Details
+                  </Link>
                 </div>
               </div>
             );

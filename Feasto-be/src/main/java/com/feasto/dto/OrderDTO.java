@@ -26,6 +26,7 @@ public class OrderDTO {
     private Double discountAmount;
     private String promoCode;
     private Double tipAmount;
+    private Double deliveryFee;
     private Address deliveryAddress;
     private LocalDateTime orderTime;
     private LocalDateTime deliveryTime;
@@ -83,6 +84,12 @@ public class OrderDTO {
 	}
 	public void setTipAmount(Double tipAmount) {
 		this.tipAmount = tipAmount;
+	}
+	public Double getDeliveryFee() {
+		return deliveryFee;
+	}
+	public void setDeliveryFee(Double deliveryFee) {
+		this.deliveryFee = deliveryFee;
 	}
 	public Address getDeliveryAddress() {
 		return deliveryAddress;

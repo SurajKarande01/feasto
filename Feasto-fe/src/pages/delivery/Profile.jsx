@@ -2,7 +2,8 @@ import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getDeliveryPartnerById, getDeliveryNotifications, markAllDeliveryNotificationsRead, getDeliveryPartnerReviews } from "../../services/api/deliveryService";
 import { toast } from "react-toastify";
-import { Star } from "lucide-react";
+import { Star, Edit3, MapPin, Loader2, Save, X, Trash2 } from "lucide-react";
+import apiClient from "../../services/api/apiClient";
 
 const getPartnerId = () => {
   try {
@@ -20,6 +21,9 @@ const DeliveryProfile = () => {
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("profile");
+  const [isEditing, setIsEditing] = useState(false);
+  const [editForm, setEditForm] = useState({});
+  const [isUpdating, setIsUpdating] = useState(false);
 
   const loadData = useCallback(async () => {
     const id = getPartnerId();
@@ -52,6 +56,76 @@ const DeliveryProfile = () => {
   const handleLogout = () => { 
     localStorage.clear(); 
     navigate("/welcome"); 
+  };
+
+  const handleEditClick = () => {
+    setEditForm({
+      name: profile.name || "",
+      phoneNumber: profile.phoneNumber || "",
+      vehicleType: profile.vehicleType || "Bicycle",
+      vehicleDetails: profile.vehicleDetails || "",
+      latitude: profile.currentLocation?.latitude || "",
+      longitude: profile.currentLocation?.longitude || "",
+      available: profile.available ?? profile.isAvailable ?? false,
+      password: ""
+    });
+    setIsEditing(true);
+  };
+
+  const handleDetectLocation = () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => setEditForm(prev => ({ ...prev, latitude: pos.coords.latitude, longitude: pos.coords.longitude })),
+        () => toast.error("Location access denied or unavailable.")
+      );
+    } else {
+      toast.error("Geolocation not supported by this browser.");
+    }
+  };
+
+  const handleUpdateProfile = async () => {
+    const id = getPartnerId();
+    if (!id) return;
+    setIsUpdating(true);
+    try {
+      const payload = {
+        name: editForm.name,
+        phoneNumber: editForm.phoneNumber,
+        vehicleType: editForm.vehicleType,
+        vehicleDetails: editForm.vehicleDetails,
+        available: editForm.available,
+        currentLocation: (editForm.latitude && editForm.longitude) ? { latitude: parseFloat(editForm.latitude), longitude: parseFloat(editForm.longitude) } : null
+      };
+      if (editForm.password) {
+        payload.password = editForm.password;
+      }
+      const { data } = await apiClient.put(`/delivery-partners/${id}`, payload);
+      setProfile(data);
+      localStorage.setItem("deliveryProfile", JSON.stringify(data));
+      setIsEditing(false);
+      toast.success("Profile updated successfully!");
+    } catch (err) {
+      toast.error("Failed to update profile.");
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const handleDeleteProfile = async () => {
+    if (!window.confirm("Are you sure you want to permanently delete your delivery profile? This action cannot be undone.")) return;
+    const id = getPartnerId();
+    if (!id) return;
+    setIsUpdating(true);
+    try {
+      await apiClient.delete(`/delivery-partners/${id}`);
+      localStorage.clear();
+      toast.success("Profile deleted successfully!");
+      navigate("/welcome");
+    } catch (err) {
+      toast.error("Failed to delete profile.");
+    } finally {
+      setIsUpdating(false);
+    }
   };
 
   if (loading) {
@@ -143,8 +217,11 @@ const DeliveryProfile = () => {
         </button>
       </div>
 
-      {activeTab === "profile" && (
-        <div className="bg-white rounded-[32px] border border-slate-100 p-6 shadow-[0_8px_30px_rgba(0,0,0,0.01)]">
+      {activeTab === "profile" && !isEditing && (
+        <div className="bg-white rounded-[32px] border border-slate-100 p-6 shadow-[0_8px_30px_rgba(0,0,0,0.01)] relative">
+          <button onClick={handleEditClick} className="absolute top-6 right-6 p-2 rounded-xl border border-slate-200 text-slate-400 hover:bg-slate-50 hover:text-slate-800 transition-colors cursor-pointer" title="Edit Profile">
+            <Edit3 size={18}/>
+          </button>
           <h2 className="text-[10px] font-extrabold text-slate-400 uppercase tracking-widest mb-6">Personal Information</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
@@ -181,6 +258,79 @@ const DeliveryProfile = () => {
               </p>
             </div>
           )}
+        </div>
+      )}
+
+      {activeTab === "profile" && isEditing && (
+        <div className="bg-white rounded-[32px] border border-slate-100 p-6 shadow-[0_8px_30px_rgba(0,0,0,0.01)] animate-fade-in-up">
+          <div className="flex justify-between items-center mb-6">
+             <h2 className="text-sm font-black text-slate-900 uppercase tracking-wider">Edit Profile</h2>
+             <button onClick={() => setIsEditing(false)} className="p-2 rounded-xl border border-slate-200 text-slate-400 hover:bg-slate-50 hover:text-slate-800 transition-colors cursor-pointer" title="Cancel">
+               <X size={18}/>
+             </button>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Full Name</label>
+              <input value={editForm.name} onChange={e => setEditForm(p => ({...p, name: e.target.value}))} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs focus:outline-none focus:border-rose-500 shadow-sm" placeholder="Your Name"/>
+            </div>
+            <div>
+              <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Phone Number</label>
+              <input value={editForm.phoneNumber} onChange={e => setEditForm(p => ({...p, phoneNumber: e.target.value}))} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs focus:outline-none focus:border-rose-500 shadow-sm" placeholder="Phone Number"/>
+            </div>
+            <div>
+              <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Vehicle Type</label>
+              <select value={editForm.vehicleType} onChange={e => setEditForm(p => ({...p, vehicleType: e.target.value}))} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs focus:outline-none focus:border-rose-500 shadow-sm cursor-pointer">
+                 <option>Bicycle</option><option>Motorcycle</option><option>Car</option><option>Scooter</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Vehicle Details</label>
+              <input value={editForm.vehicleDetails} onChange={e => setEditForm(p => ({...p, vehicleDetails: e.target.value}))} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs focus:outline-none focus:border-rose-500 shadow-sm" placeholder="e.g. Red Honda Activa"/>
+            </div>
+            <div>
+              <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Status</label>
+              <select value={editForm.available ? "true" : "false"} onChange={e => setEditForm(p => ({...p, available: e.target.value === "true"}))} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs focus:outline-none focus:border-rose-500 shadow-sm cursor-pointer">
+                 <option value="true">Online</option>
+                 <option value="false">Offline</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">New Password (leave blank to keep current)</label>
+              <input type="password" value={editForm.password} onChange={e => setEditForm(p => ({...p, password: e.target.value}))} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs focus:outline-none focus:border-rose-500 shadow-sm" placeholder="••••••••"/>
+            </div>
+          </div>
+          
+          <div className="mt-6 pt-6 border-t border-slate-100">
+             <div className="flex justify-between items-center mb-4">
+                 <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Geolocation</label>
+                 <button onClick={handleDetectLocation} type="button" className="text-[10px] font-bold flex items-center gap-1 bg-sky-50 text-sky-600 px-3 py-1.5 rounded-lg border border-sky-100 hover:bg-sky-100 transition-colors cursor-pointer">
+                    <MapPin size={12}/> Detect My Location
+                 </button>
+             </div>
+             <div className="grid grid-cols-2 gap-4">
+                 <div>
+                   <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Latitude</label>
+                   <input value={editForm.latitude} onChange={e => setEditForm(p => ({...p, latitude: e.target.value}))} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs focus:outline-none focus:border-rose-500 shadow-sm" placeholder="e.g. 19.0760"/>
+                 </div>
+                 <div>
+                   <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Longitude</label>
+                   <input value={editForm.longitude} onChange={e => setEditForm(p => ({...p, longitude: e.target.value}))} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs focus:outline-none focus:border-rose-500 shadow-sm" placeholder="e.g. 72.8777"/>
+                 </div>
+             </div>
+          </div>
+
+          <div className="mt-8 flex justify-between items-center">
+             <button onClick={handleDeleteProfile} disabled={isUpdating} className="px-5 py-2.5 rounded-xl font-bold text-xs text-rose-600 bg-rose-50 hover:bg-rose-100 transition-colors cursor-pointer disabled:opacity-50 flex items-center gap-2">
+                <Trash2 size={14}/> Delete Account
+             </button>
+             <div className="flex gap-3">
+                 <button onClick={() => setIsEditing(false)} className="px-5 py-2.5 rounded-xl font-bold text-xs text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors cursor-pointer">Cancel</button>
+                 <button onClick={handleUpdateProfile} disabled={isUpdating} className="px-5 py-2.5 rounded-xl font-bold text-xs text-white bg-slate-900 hover:bg-slate-800 transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50">
+                    {isUpdating ? <Loader2 className="animate-spin" size={14}/> : <Save size={14}/>} {isUpdating ? 'Saving...' : 'Save Changes'}
+                 </button>
+             </div>
+          </div>
         </div>
       )}
 

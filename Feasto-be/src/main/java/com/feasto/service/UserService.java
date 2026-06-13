@@ -16,6 +16,8 @@ import com.feasto.mapper.CustomMapper;
 import com.feasto.repository.UserRepository;
 import com.feasto.repository.RestaurantRepository;
 import com.feasto.repository.DeliveryPartnerRepository;
+import com.feasto.repository.LoyaltyProgramRepository;
+import com.feasto.entity.LoyaltyProgram;
 
 @Service
 public class UserService {
@@ -30,6 +32,9 @@ public class UserService {
 
     @Autowired
     private DeliveryPartnerRepository deliveryPartnerRepository;
+
+    @Autowired
+    private LoyaltyProgramRepository loyaltyProgramRepository;
 
     @Autowired
     private CustomMapper mapper;
@@ -97,5 +102,17 @@ public class UserService {
         
         User savedUser = userRepository.save(user);
         return mapper.toUserDTO(savedUser);
+    }
+
+    public void deleteUser(Long id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
+
+        // Delete loyalty program if it exists to avoid FK constraint violation
+        loyaltyProgramRepository.findByUser_UserId(id).ifPresent(lp -> {
+            loyaltyProgramRepository.delete(lp);
+        });
+
+        userRepository.delete(user);
     }
 }

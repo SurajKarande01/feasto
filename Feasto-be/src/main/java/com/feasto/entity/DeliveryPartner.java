@@ -58,6 +58,8 @@ public class DeliveryPartner {
 
     private String vehicleDetails; // Optional
 
+    private String vehicleType; // e.g. Bicycle, Motorcycle, Car, Scooter
+
     @Enumerated(EnumType.STRING)
     private Role role;
 

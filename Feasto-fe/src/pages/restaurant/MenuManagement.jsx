@@ -1,5 +1,5 @@
 import apiClient from "../../services/api/apiClient";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { toast } from "react-toastify";
 import { Cloudinary } from "@cloudinary/url-gen";
 import { fill } from "@cloudinary/url-gen/actions/resize";
@@ -150,7 +150,7 @@ const MenuManagement = () => {
     }
   };
 
-  const doFetch = async () => {
+  const doFetch = useCallback(async () => {
     const rid = getRestaurantId();
     if (!rid) {
       setError("No restaurant profile found. Please login.");
@@ -175,11 +175,11 @@ const MenuManagement = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     doFetch();
-  }, []);
+  }, [doFetch]);
 
   const handleDelete = async (item) => {
     const rid = getRestaurantId();

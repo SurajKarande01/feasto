@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { getUserById, getLoyaltyByUserId, subscribeLoyalty, getCustomerNotifications, markAllCustomerNotificationsRead, updateUserProfile } from "../../services/api/customerService";
+import apiClient from "../../services/api/apiClient";
 import Footer from "../../components/common/Footer";
 
 const getUserIdFromStorage = () => {
@@ -126,6 +127,22 @@ const CustomerProfile = () => {
     } catch (err) {
       toast.error(err?.response?.data?.error || err?.response?.data?.message || "Failed to update profile");
     } finally { setSaving(false); }
+  };
+
+  const handleDeleteProfile = async () => {
+    if (!window.confirm("Are you sure you want to permanently delete your account? This action cannot be undone.")) return;
+    const userId = getUserIdFromStorage();
+    if (!userId) return;
+    setSaving(true);
+    try {
+      await apiClient.delete(`/users/${userId}`);
+      localStorage.clear();
+      toast.success("Account deleted successfully!");
+      navigate("/welcome");
+    } catch (err) {
+      toast.error("Failed to delete account");
+      setSaving(false);
+    }
   };
 
   const handleSubscribeLoyalty = async (membershipType) => {
@@ -372,6 +389,13 @@ const CustomerProfile = () => {
                       📍 GPS Detected: {Number(editForm.latitude).toFixed(5)}, {Number(editForm.longitude).toFixed(5)}
                     </div>
                   )}
+
+                  <div className="mt-8 pt-6 border-t border-slate-50 flex justify-between items-center">
+                    <button type="button" onClick={handleDeleteProfile} disabled={saving} className="px-4 py-2 bg-rose-50 hover:bg-rose-100 text-rose-600 text-xs font-bold rounded-xl transition-colors cursor-pointer disabled:opacity-50">
+                      Delete Account
+                    </button>
+                    {/* The Save button is already at the top, but we can add one here or keep it clean */}
+                  </div>
                 </div>
               </div>
             )}

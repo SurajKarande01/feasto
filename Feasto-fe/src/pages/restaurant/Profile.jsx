@@ -205,6 +205,11 @@ const RestaurantProfile = () => {
   const [activeTab, setActiveTab] = useState('menu');
   const [isAddingDish, setIsAddingDish] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  
+  // Profile edit state
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [editProfileForm, setEditProfileForm] = useState({ name: '', phoneNumber: '', imageFile: null, imagePreview: '' });
+  const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
 
   // 1. Fetch Data
   useEffect(() => {
@@ -280,6 +285,56 @@ const RestaurantProfile = () => {
     }
   };
 
+  const handleEditProfileClick = () => {
+    setEditProfileForm({
+        name: restaurant?.name || '',
+        phoneNumber: restaurant?.phoneNumber || '',
+        imageFile: null,
+        imagePreview: restaurant?.imageUrl || ''
+    });
+    setIsEditingProfile(true);
+  };
+
+  const handleUpdateProfile = async (e) => {
+    e.preventDefault();
+    if (!editProfileForm.name || !editProfileForm.phoneNumber) return alert("Name and Phone are required");
+    setIsUpdatingProfile(true);
+    try {
+        const formData = new FormData();
+        const resJson = JSON.stringify({
+            name: editProfileForm.name,
+            phoneNumber: editProfileForm.phoneNumber
+        });
+        formData.append("restaurant", resJson);
+        if (editProfileForm.imageFile) {
+            formData.append("image", editProfileForm.imageFile);
+        }
+        const { data } = await apiClient.put(`/restaurants/${restaurantId}/profile`, formData);
+        setRestaurant(data);
+        localStorage.setItem("restaurantProfile", JSON.stringify(data));
+        setIsEditingProfile(false);
+    } catch (err) {
+        alert("Failed to update profile.");
+    } finally {
+        setIsUpdatingProfile(false);
+    }
+  };
+
+  const handleDeleteProfile = async () => {
+    if (!window.confirm("Are you absolutely sure you want to permanently delete your restaurant profile? This will delete all your menu items, orders, and reviews.")) return;
+    setIsUpdatingProfile(true);
+    try {
+        await apiClient.delete(`/restaurants/${restaurantId}`);
+        localStorage.clear();
+        alert("Restaurant profile deleted successfully.");
+        window.location.href = "/welcome";
+    } catch (err) {
+        alert("Failed to delete restaurant profile.");
+    } finally {
+        setIsUpdatingProfile(false);
+    }
+  };
+
   const filteredMenuItems = menuItems.filter(item => 
     item.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     item.category?.toLowerCase().includes(searchQuery.toLowerCase())
@@ -347,7 +402,7 @@ const RestaurantProfile = () => {
 
             {/* Actions */}
             <div className="flex gap-2 self-start md:self-end">
-              <button className="p-2.5 rounded-xl border border-slate-200 text-slate-400 hover:bg-slate-50 hover:text-slate-800 transition-colors cursor-pointer">
+              <button onClick={handleEditProfileClick} className="p-2.5 rounded-xl border border-slate-200 text-slate-400 hover:bg-slate-50 hover:text-slate-800 transition-colors cursor-pointer" title="Edit Profile">
                 <Settings size={18}/>
               </button>
             </div>
@@ -465,6 +520,63 @@ const RestaurantProfile = () => {
             </>
         )}
       </div>
+
+      {/* Edit Profile Modal */}
+      {isEditingProfile && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 backdrop-blur-sm overflow-y-auto pt-20 pb-10">
+              <div className="absolute inset-0" onClick={() => setIsEditingProfile(false)} />
+              <div className="relative bg-white rounded-[32px] shadow-2xl p-6 w-full max-w-md mx-4 my-auto border border-slate-100">
+                  <div className="flex justify-between items-center mb-6 border-b border-slate-50 pb-4">
+                      <div>
+                          <span className="text-[10px] font-extrabold text-rose-500 uppercase tracking-widest block mb-0.5">Settings</span>
+                          <h2 className="text-lg font-black text-slate-900">Edit Profile</h2>
+                      </div>
+                      <button onClick={() => setIsEditingProfile(false)} className="p-2 hover:bg-slate-50 rounded-xl cursor-pointer">
+                          <X size={18} className="text-slate-500"/>
+                      </button>
+                  </div>
+                  
+                  <form onSubmit={handleUpdateProfile} className="space-y-4">
+                      <div className="flex justify-center mb-4">
+                          <div className="relative w-24 h-24 rounded-2xl overflow-hidden border border-slate-200 group">
+                              <img src={editProfileForm.imagePreview || 'https://via.placeholder.com/150?text=No+Image'} alt="Preview" className="w-full h-full object-cover"/>
+                              <div className="absolute inset-0 bg-slate-950/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                  <label className="cursor-pointer text-white font-bold text-[10px] uppercase tracking-wider">
+                                      Change
+                                      <input type="file" accept="image/*" className="hidden" onChange={(e) => {
+                                          if (e.target.files[0]) {
+                                              setEditProfileForm(p => ({ ...p, imageFile: e.target.files[0], imagePreview: URL.createObjectURL(e.target.files[0]) }));
+                                          }
+                                      }}/>
+                                  </label>
+                              </div>
+                          </div>
+                      </div>
+
+                      <div>
+                          <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Restaurant Name</label>
+                          <input required value={editProfileForm.name} onChange={e => setEditProfileForm(p => ({...p, name: e.target.value}))} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs focus:outline-none focus:border-rose-500 shadow-sm" />
+                      </div>
+                      <div>
+                          <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Phone Number</label>
+                          <input required value={editProfileForm.phoneNumber} onChange={e => setEditProfileForm(p => ({...p, phoneNumber: e.target.value}))} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs focus:outline-none focus:border-rose-500 shadow-sm" />
+                      </div>
+
+                      <div className="pt-4 flex justify-between items-center border-t border-slate-50 mt-4">
+                          <button type="button" onClick={handleDeleteProfile} disabled={isUpdatingProfile} className="px-4 py-3 bg-rose-50 text-rose-600 rounded-xl font-bold text-xs transition-colors hover:bg-rose-100 flex items-center gap-2 cursor-pointer disabled:opacity-50">
+                              <Trash2 size={14}/> Delete Account
+                          </button>
+                          <div className="flex gap-3">
+                              <button type="button" onClick={() => setIsEditingProfile(false)} className="px-4 py-3 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl font-bold text-xs transition-colors cursor-pointer">Cancel</button>
+                              <button type="submit" disabled={isUpdatingProfile} className="px-6 py-3 bg-rose-500 hover:bg-rose-600 active:scale-98 text-white rounded-xl font-bold text-xs shadow-md shadow-rose-500/20 transition-all flex justify-center items-center gap-2 cursor-pointer disabled:opacity-50">
+                                  {isUpdatingProfile ? <Loader2 size={16} className="animate-spin"/> : <Check size={16}/>} Save
+                              </button>
+                          </div>
+                      </div>
+                  </form>
+              </div>
+          </div>
+      )}
     </div>
   );
 };

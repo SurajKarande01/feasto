@@ -28,7 +28,7 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     // Aggregations pushed to DB for better performance
     long countByRestaurant_RestaurantId(Long restaurantId);
 
-    @Query("SELECT COALESCE(SUM(o.totalAmount), 0) FROM Order o WHERE o.restaurant.restaurantId = :restaurantId")
+    @Query("SELECT COALESCE(SUM(o.totalAmount), 0) FROM Order o WHERE o.restaurant.restaurantId = :restaurantId AND o.orderStatus NOT IN (com.feasto.enums.OrderStatus.CANCELLED, com.feasto.enums.OrderStatus.REJECTED)")
     Double sumTotalAmountByRestaurantId(@Param("restaurantId") Long restaurantId);
 
     @Query("SELECT o.orderStatus, COUNT(o) FROM Order o WHERE o.restaurant.restaurantId = :restaurantId GROUP BY o.orderStatus")

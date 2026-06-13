@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -67,8 +68,13 @@ public class DeliveryPartnerController {
 	}
 
 	@GetMapping("/{id}")
-	public ResponseEntity<DeliveryPartnerDTO> getDeliveryPartnerById(@PathVariable Long id) {
-		return ResponseEntity.ok(deliveryPartnerService.getDeliveryPartnerById(id));
+	public ResponseEntity<?> getDeliveryPartnerById(@PathVariable Long id) {
+        try {
+		    return ResponseEntity.ok(deliveryPartnerService.getDeliveryPartnerById(id));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body("Error: " + e.getMessage() + " cause: " + (e.getCause() != null ? e.getCause().getMessage() : "null"));
+        }
 	}
 
 	@GetMapping
@@ -110,5 +116,18 @@ public class DeliveryPartnerController {
 		// user-specific queue
 		messagingTemplate.convertAndSendToUser("delivery-" + dto.getDeliveryPartnerId(), "/queue/locations", dto);
 		return ResponseEntity.accepted().build();
+	}
+
+	@PreAuthorize("hasRole('DELIVERY_PARTNER')")
+	@PutMapping("/{id}")
+	public ResponseEntity<DeliveryPartnerDTO> updateDeliveryPartner(@PathVariable Long id, @RequestBody DeliveryPartnerDTO dto) {
+		return ResponseEntity.ok(deliveryPartnerService.updateDeliveryPartner(id, dto));
+	}
+
+	@PreAuthorize("hasAnyRole('DELIVERY_PARTNER', 'ADMIN')")
+	@DeleteMapping("/{id}")
+	public ResponseEntity<Void> deleteDeliveryPartner(@PathVariable Long id) {
+		deliveryPartnerService.deleteDeliveryPartner(id);
+		return ResponseEntity.noContent().build();
 	}
 }

@@ -33,6 +33,7 @@ public class DeliveryPartnerDTO {
     private String password;
     private com.feasto.enums.Role role;
     private String vehicleDetails;
+    private String vehicleType;
     private Boolean available;
     private Location currentLocation;
     private Double rating; // Average rating from customers

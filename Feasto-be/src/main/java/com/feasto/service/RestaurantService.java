@@ -129,6 +129,41 @@ public class RestaurantService {
 		return mapper.toRestaurantDTO(savedRestaurant);
 	}
 
+	@Caching(evict = { @CacheEvict(value = "restaurantsAll", allEntries = true),
+			@CacheEvict(value = "nearbyRestaurantsCache", allEntries = true),
+			@CacheEvict(value = "restaurantById", key = "#id") })
+	public RestaurantDTO updateRestaurant(Long id, RestaurantDTO dto, MultipartFile image) {
+		Restaurant restaurant = restaurantRepository.findById(id)
+				.orElseThrow(() -> new ResourceNotFoundException("Restaurant not found with id: " + id));
+
+		if (dto.getName() != null) restaurant.setName(dto.getName());
+		if (dto.getPhoneNumber() != null) restaurant.setPhoneNumber(dto.getPhoneNumber());
+
+		if (image != null && !image.isEmpty()) {
+			ValidationUtil.validateImage(image, maxFileSizeMB);
+			String orig = dto.getName() == null ? "img" : dto.getName().replaceAll("\\s+", "_");
+			String rand = String.valueOf((int) (Math.random() * 9000) + 1000);
+			String name = "restaurant-" + rand + "-" + orig;
+
+			try {
+				ImageUploadResult res = cloudinaryService.uploadImage(image, name);
+				if (res != null) {
+					if (restaurant.getCloudinaryPublicId() != null && !restaurant.getCloudinaryPublicId().isBlank()) {
+						cloudinaryService.deleteImage(restaurant.getCloudinaryPublicId());
+					}
+					restaurant.setImageUrl(res.getImageUrl());
+					restaurant.setCloudinaryPublicId(res.getPublicId());
+				}
+			} catch (Exception ex) {
+				logger.error("Failed to upload restaurant image to Cloudinary", ex);
+				throw new ValidationException("Failed to upload image to Cloudinary: " + ex.getMessage());
+			}
+		}
+		
+		Restaurant updated = restaurantRepository.save(restaurant);
+		return mapper.toRestaurantDTO(updated);
+	}
+
 	@Cacheable(value = "restaurantById", key = "#id")  
 	public RestaurantDTO getRestaurantById(Long id) {
 		Restaurant restaurant = restaurantRepository.findById(id)
@@ -419,19 +454,26 @@ public class RestaurantService {
 						"Restaurant not found with id: " + restaurantId));
 
 		// Use repository-level aggregations to avoid loading all entities into memory
-		long totalOrders = orderRepository.countByRestaurant_RestaurantId(restaurantId);
 		Double totalRevenueObj = orderRepository.sumTotalAmountByRestaurantId(restaurantId);
 		double totalRevenue = totalRevenueObj == null ? 0.0 : totalRevenueObj.doubleValue();
-		double averageOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0.0;
 
+		long totalOrders = 0;
+		long successfulOrders = 0;
 		Map<String, Long> ordersByStatus = new HashMap<>();
 		List<Object[]> statusCounts = orderRepository.countOrdersByStatusForRestaurant(restaurantId);
 		for (Object[] row : statusCounts) {
 			Object status = row[0];
 			Number cnt = (Number) row[1];
 			String key = status == null ? "UNKNOWN" : status.toString();
-			ordersByStatus.put(key, cnt == null ? 0L : cnt.longValue());
+			long countVal = cnt == null ? 0L : cnt.longValue();
+			ordersByStatus.put(key, countVal);
+			totalOrders += countVal;
+			if (!"CANCELLED".equals(key) && !"REJECTED".equals(key)) {
+				successfulOrders += countVal;
+			}
 		}
+
+		double averageOrderValue = successfulOrders > 0 ? totalRevenue / successfulOrders : 0.0;
 
 		// Top menu items: use DB aggregation and limit to top 10
 		List<Object[]> topRows = orderRepository.findTopMenuItemsByRestaurant(restaurantId, PageRequest.of(0, 10));
@@ -467,4 +509,22 @@ public class RestaurantService {
 		return dto;
 	}
 
+	@Caching(evict = { @CacheEvict(value = "restaurantsAll", allEntries = true),
+			@CacheEvict(value = "nearbyRestaurantsCache", allEntries = true),
+			@CacheEvict(value = "restaurantById", key = "#id") })
+	public void deleteRestaurant(Long id) {
+		Restaurant restaurant = restaurantRepository.findById(id)
+				.orElseThrow(() -> new ResourceNotFoundException("Restaurant not found with id: " + id));
+
+		if (restaurant.getCloudinaryPublicId() != null && !restaurant.getCloudinaryPublicId().isBlank()) {
+			cloudinaryService.deleteImage(restaurant.getCloudinaryPublicId());
+		}
+		for (MenuItem item : restaurant.getMenuItems()) {
+			if (item.getCloudinaryPublicId() != null && !item.getCloudinaryPublicId().isBlank()) {
+				cloudinaryService.deleteImage(item.getCloudinaryPublicId());
+			}
+		}
+
+		restaurantRepository.delete(restaurant);
+	}
 }

@@ -186,7 +186,7 @@ public class OrderService {
 		// 1. Get all available delivery partners
 		List<DeliveryPartner> availablePartners = deliveryPartnerRepository.findByAvailableTrue();
 		if (availablePartners.isEmpty()) {
-			// Optionally: queue for retry
+			// Optionally: queue for retry.
 			return null;
 		}
 

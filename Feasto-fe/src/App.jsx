@@ -35,7 +35,7 @@ import RestaurantDashboard from "./pages/restaurant/RestaurantDashboard";
 // ---------------------------------------------------------------------------
 
 /**
- * Utility function to inspect the browser local storage and deduce the user's role.
+ * Utility function to inspect the browser local storage and deduce the user's role..
  * Inspects matching tokens and profile payloads to return 'RESTAURANT_OWNER', 'DELIVERY_PARTNER', or 'CUSTOMER'.
  */
 const getRoleFromLocalStorage = () => {

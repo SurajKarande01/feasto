@@ -77,6 +77,9 @@ public class RestaurantService {
     @Autowired
     private org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
 
+	/**
+	 * Helper function to ensure an email isn't already in use by any role (User, Restaurant, or Delivery Partner).
+	 */
 	private void validateEmailUniqueness(String email) {
 		if (userRepository.existsByEmailIgnoreCase(email) || 
 			restaurantRepository.existsByEmailIgnoreCase(email) || 
@@ -85,6 +88,9 @@ public class RestaurantService {
 		}
 	}
 
+	/**
+	 * Registers a new restaurant profile in the database without uploading a banner image.
+	 */
 	@CacheEvict(value = "nearbyRestaurantsCache", allEntries = true)
 	public RestaurantDTO registerRestaurant(RestaurantDTO restaurantDTO) {
 		validateEmailUniqueness(restaurantDTO.getEmail());
@@ -97,6 +103,9 @@ public class RestaurantService {
 		return mapper.toRestaurantDTO(savedRestaurant);
 	}
 
+	/**
+	 * Registers a new restaurant profile in the database and uploads its banner image to Cloudinary.
+	 */
 	@CacheEvict(value = "nearbyRestaurantsCache", allEntries = true)
 	public RestaurantDTO registerRestaurant(RestaurantDTO restaurantDTO, MultipartFile image) {
 		validateEmailUniqueness(restaurantDTO.getEmail());
@@ -129,6 +138,9 @@ public class RestaurantService {
 		return mapper.toRestaurantDTO(savedRestaurant);
 	}
 
+	/**
+	 * Updates a restaurant's textual metadata and optionally replaces its banner image on Cloudinary.
+	 */
 	@Caching(evict = { @CacheEvict(value = "restaurantsAll", allEntries = true),
 			@CacheEvict(value = "nearbyRestaurantsCache", allEntries = true),
 			@CacheEvict(value = "restaurantById", key = "#id") })
@@ -164,6 +176,9 @@ public class RestaurantService {
 		return mapper.toRestaurantDTO(updated);
 	}
 
+	/**
+	 * Retrieves a restaurant profile by its ID, leveraging cache.
+	 */
 	@Cacheable(value = "restaurantById", key = "#id")  
 	public RestaurantDTO getRestaurantById(Long id) {
 		Restaurant restaurant = restaurantRepository.findById(id)
@@ -171,12 +186,18 @@ public class RestaurantService {
 		return mapper.toRestaurantDTO(restaurant);
 	}
 
+	/**
+	 * Retrieves all registered restaurants in the system.
+	 */
 	@Cacheable(value = "restaurantsAll")
 	public List<RestaurantDTO> getAllRestaurants() {
 		return restaurantRepository.findAll().stream().map(mapper::toRestaurantDTO).collect(Collectors.toList());
 	}
 
     // Login for restaurant using email and password
+    /**
+     * Authenticates a restaurant owner using their email.
+     */
     public RestaurantDTO loginRestaurant(String email, String password) {
         Restaurant restaurant = restaurantRepository.findByEmail(email)
                 .orElseThrow(() -> new UnauthorizedException("Invalid credentials"));
@@ -184,6 +205,9 @@ public class RestaurantService {
         return mapper.toRestaurantDTO(restaurant);
     }
 
+	/**
+	 * Adds a new item to the restaurant's menu card, optionally uploading an item photo to Cloudinary.
+	 */
 	@Caching(evict = {
 			@CacheEvict(value = "menuItemsByRestaurant", key = "#restaurantId"),
 			@CacheEvict(value = "nearbyRestaurantsCache", allEntries = true)
@@ -216,6 +240,9 @@ public class RestaurantService {
 		return mapper.toMenuItemDTO(savedMenuItem);
 	}
 
+	/**
+	 * Updates textual menu item properties and/or replaces the item's image on Cloudinary.
+	 */
 	@Caching(evict = {
 			@CacheEvict(value = "menuItemsByRestaurant", key = "#restaurantId"),
 			@CacheEvict(value = "nearbyRestaurantsCache", allEntries = true)
@@ -287,6 +314,9 @@ public class RestaurantService {
 		return mapper.toMenuItemDTO(updatedMenuItem);
 	}
 
+	/**
+	 * Removes a menu item from the restaurant's menu card and cleans up its image from Cloudinary.
+	 */
 	@Caching(evict = {
 			@CacheEvict(value = "menuItemsByRestaurant", key = "#restaurantId"),
 			@CacheEvict(value = "nearbyRestaurantsCache", allEntries = true)
@@ -307,6 +337,9 @@ public class RestaurantService {
 		// No notification sent for menu deletion (removed non-essential notifications)
 	}
 
+	/**
+	 * Retrieves all menu items belonging to a restaurant.
+	 */
 	@Transactional(readOnly = true)
 	public List<MenuItemDTO> getMenuItemsByRestaurantId(Long restaurantId) {
 		return menuItemRepository.findByRestaurant_RestaurantId(restaurantId).stream().map(mapper::toMenuItemDTO)
@@ -315,6 +348,10 @@ public class RestaurantService {
 
 	// New: paginated nearby restaurants based on lat/lon. Returns RestaurantDTOs
 	// with distanceKm and a few special menu items.
+	/**
+	 * Searches for nearby restaurants within a distance threshold using coordinates.
+	 * Results are paginated and cached.
+	 */
 	@Cacheable(value = "nearbyRestaurantsCache", key = "T(java.lang.String).format('%s:%s:%s:%s:%s:%s', #lat, #lon, #page, #limit, #sort, #maxDistanceKm)")
 	public Page<RestaurantDTO> findNearbyRestaurants(double lat, double lon, int page,
 			int limit, String sort, double maxDistanceKm) {
@@ -344,6 +381,9 @@ public class RestaurantService {
 	}
 
 	// New: random restaurants for first visit
+	/**
+	 * Returns a random list of active restaurants for first-time homepage loading.
+	 */
 	public List<RestaurantDTO> findRandomRestaurants(int limit) {
 		List<Restaurant> restaurants = restaurantRepository.findRandomRestaurants(limit);
 		List<RestaurantDTO> dtos = restaurants.stream().map(r -> {
@@ -362,6 +402,9 @@ public class RestaurantService {
 		return dtos;
 	}
 
+	/**
+	 * Fetches all active restaurants in a specific city with pagination.
+	 */
 	@Transactional(readOnly = true)
 	public Page<RestaurantDTO> getRestaurantsByCity(String city, int page, int limit) {
 		Pageable pageable = PageRequest.of(page, limit);
@@ -382,6 +425,10 @@ public class RestaurantService {
 	}
 
 	// New: fuzzy search by name. Returns paged RestaurantDTOs.
+	/**
+	 * Searches for active restaurants by name.
+	 * First attempts a direct case-insensitive match, and falls back to fuzzy Levenshtein distance calculations.
+	 */
 	@Transactional(readOnly = true)
 	public Page<RestaurantDTO> searchRestaurantsByName(String name, int page, int limit) {
 		Pageable pageable = PageRequest.of(page, limit);
@@ -428,6 +475,9 @@ public class RestaurantService {
 	}
 
 	// Small Levenshtein implementation (could be extracted to util)
+	/**
+	 * Computes Levenshtein distance between two strings to support fuzzy search queries.
+	 */
 	private int levenshteinDistance(String a, String b) {
 		int[] costs = new int[b.length() + 1];
 		for (int j = 0; j <= b.length(); j++)
@@ -446,6 +496,9 @@ public class RestaurantService {
 	}
 
 	// Analytics for a restaurant: orders, revenue, rating, top items
+	/**
+	 * Gathers analytics metrics for a restaurant (revenue, orders, ratings, top items).
+	 */
 	@Transactional(readOnly = true)
 	public RestaurantAnalyticsDTO getRestaurantAnalytics(Long restaurantId) {
 		// ensure restaurant exists
@@ -509,6 +562,9 @@ public class RestaurantService {
 		return dto;
 	}
 
+	/**
+	 * Deletes a restaurant, its associated menu items, and deletes all banner resources from Cloudinary.
+	 */
 	@Caching(evict = { @CacheEvict(value = "restaurantsAll", allEntries = true),
 			@CacheEvict(value = "nearbyRestaurantsCache", allEntries = true),
 			@CacheEvict(value = "restaurantById", key = "#id") })

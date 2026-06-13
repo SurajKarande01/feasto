@@ -39,6 +39,13 @@ public class ReviewService {
         @Autowired
         private OrderRepository orderRepository;
 
+        /**
+         * Submits a customer review for a restaurant and/or a delivery rider.
+         * What it does:
+         * 1. Validates that the customer, restaurant, and order references exist.
+         * 2. Persists the review.
+         * 3. Recalculates and updates the running average rating of the target delivery partner and/or restaurant.
+         */
         @CacheEvict(value = "reviewsByRestaurant", key = "#dto.restaurantId", condition = "#dto.restaurantId != null")
         public ReviewDTO submitReview(ReviewDTO dto) {
                 userRepository.findById(dto.getUserId())
@@ -93,6 +100,9 @@ public class ReviewService {
                 return mapper.toReviewDTO(saved);
         }
 
+        /**
+         * Retrieves all historical customer reviews for a specific restaurant.
+         */
         @Cacheable(value = "reviewsByRestaurant", key = "#restaurantId")
         public List<ReviewDTO> getReviewsByRestaurantId(Long restaurantId) {
                 restaurantRepository.findById(restaurantId)
@@ -103,12 +113,18 @@ public class ReviewService {
                                 .collect(Collectors.toList());
         }
 
+        /**
+         * Fetches a specific review's details by its ID.
+         */
         public ReviewDTO getReviewById(Long id) {
                 Review review = reviewRepository.findById(id)
                                 .orElseThrow(() -> new ResourceNotFoundException("Review not found with id: " + id));
                 return mapper.toReviewDTO(review);
         }
 
+        /**
+         * Retrieves all historical customer reviews for a specific delivery rider.
+         */
         public List<ReviewDTO> getReviewsByDeliveryPartnerId(Long deliveryPartnerId) {
                 deliveryPartnerRepository.findById(deliveryPartnerId)
                                 .orElseThrow(() -> new ResourceNotFoundException(

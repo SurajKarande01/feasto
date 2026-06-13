@@ -22,6 +22,12 @@ public class LoyaltyService {
     @Autowired
     private UserRepository userRepository;
 
+    /**
+     * Subscribes a user to a loyalty program.
+     * What it does:
+     * 1. Validates that the customer exists in the system.
+     * 2. Maps the DTO to a LoyaltyProgram entity and saves it.
+     */
     public LoyaltyProgramDTO subscribe(LoyaltyProgramDTO dto) {
         userRepository.findById(dto.getUserId())
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + dto.getUserId()));
@@ -30,6 +36,9 @@ public class LoyaltyService {
         return mapper.toLoyaltyProgramDTO(saved);
     }
 
+    /**
+     * Retrieves the loyalty program details for a specific customer.
+     */
     public LoyaltyProgramDTO getLoyaltyByUserId(Long userId) {
         userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
@@ -38,6 +47,9 @@ public class LoyaltyService {
         return mapper.toLoyaltyProgramDTO(program);
     }
 
+    /**
+     * Renews an existing customer's loyalty subscription by updating the membership end date.
+     */
     public LoyaltyProgramDTO renewLoyalty(Long loyaltyId, LoyaltyProgramDTO dto) {
         LoyaltyProgram program = loyaltyProgramRepository.findById(loyaltyId)
                 .orElseThrow(() -> new ResourceNotFoundException("Loyalty program not found with id: " + loyaltyId));

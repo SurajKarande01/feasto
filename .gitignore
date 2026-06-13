@@ -62,6 +62,3 @@ Thumbs.db
 *.tar.gz
 *.tmp
 *.bak
-
-# --- Tool Outputs ---
-graphify-out/
